@@ -16,10 +16,11 @@ def softmax():
         if candidateIds[i] == "d7ed7deb786c3":
             continue
         coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy")
-        vowels[i] = np.load(f"sounds/sounds/{candidateIds[i]}/vowel-opera.npy")
+        # vowels[i] = np.load(f"sounds/sounds/{candidateIds[i]}/vowel-opera.npy")
         # print(candidateIds[i])
     print(coughs.shape)
-    X = np.append(coughs, np.append(vowels, X[:, 1:], axis=1), axis=1)
+    # X = np.append(coughs, np.append(vowels, X[:, 1:], axis=1), axis=1)
+    X = np.append(coughs, X[:, 1:], axis=1)
     print(X.shape)
 
 softmax()
