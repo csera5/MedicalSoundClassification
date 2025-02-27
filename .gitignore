@@ -2,3 +2,4 @@ sounds
 data
 model_*
 runs
+__pycache__

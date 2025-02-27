@@ -1,26 +1,37 @@
 import numpy as np
-import scipy
+# import scipy
 import pandas
 
 ENCODING = 512
+NUM_CLASSES = 3
 
-def softmax():
+def load_data():
     trainingData = pandas.read_csv("train.csv")
-    X = trainingData.to_numpy()[:, :-1]
-    candidateIds = X[:, 0]
-    print(candidateIds.shape)
-    n = candidateIds.shape[0]
-    coughs = np.zeros((n, ENCODING))
-    vowels = np.zeros((n, ENCODING))
-    for i in range(n):
-        if candidateIds[i] == "d7ed7deb786c3":
-            continue
-        coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy")
-        # vowels[i] = np.load(f"sounds/sounds/{candidateIds[i]}/vowel-opera.npy")
-        # print(candidateIds[i])
-    print(coughs.shape)
-    # X = np.append(coughs, np.append(vowels, X[:, 1:], axis=1), axis=1)
-    X = np.append(coughs, X[:, 1:], axis=1)
-    print(X.shape)
+    testingData = pandas.read_csv("test.csv")
 
-softmax()
+    Xtrain = trainingData.to_numpy()[:, :-1] # ignores labels in last column
+    Xtest = testingData.to_numpy()
+    XtestIDs = Xtest[:,0]
+    Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T # grabs labels from last column
+    Ytrain = Ytrain.reshape(Ytrain.shape[0] , 1) # makes shape a 2d array, easier for later
+
+    num_train = Xtrain.shape[0]
+    num_test = Xtest.shape[0]
+    train_coughs = np.zeros((num_train, ENCODING))
+    test_coughs = np.zeros((num_test, ENCODING))
+    onehot_train_labels = np.zeros((num_train, NUM_CLASSES)) # 3 classes to predict
+    onehot_train_labels[np.arange(num_train), Ytrain[:, 0].astype(int)] = 1 # performs one hot encoding
+
+    candidateIds = Xtrain[:, 0]
+    for i in range(num_train):
+        train_coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for each participant
+
+    candidateIds = Xtest[:, 0]
+    for i in range(num_test):
+        test_coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for test participants
+
+    Xtrain = np.append(train_coughs, Xtrain[:, 1:].astype(float), axis=1) # adds coughs to Xtrain array
+    Xtest = np.append(test_coughs, Xtest[:, 1:].astype(float), axis=1) # adds coughs to Ytest array
+    return Xtrain, onehot_train_labels, Xtest, XtestIDs
+
+load_data()
