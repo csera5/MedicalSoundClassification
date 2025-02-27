@@ -10,6 +10,7 @@ def load_data():
 
     Xtrain = trainingData.to_numpy()[:, :-1] # ignores labels in last column
     Xtest = testingData.to_numpy()
+    XtestIDs = Xtest[:,0]
     Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T # grabs labels from last column
     Ytrain = Ytrain.reshape(Ytrain.shape[0] , 1) # makes shape a 2d array, easier for later
 
@@ -30,6 +31,6 @@ def load_data():
 
     Xtrain = np.append(train_coughs, Xtrain[:, 1:].astype(float), axis=1) # adds coughs to Xtrain array
     Xtest = np.append(test_coughs, Xtest[:, 1:].astype(float), axis=1) # adds coughs to Ytest array
-    return Xtrain, onehot_train_labels, Xtest
+    return Xtrain, onehot_train_labels, Xtest, XtestIDs
 
 load_data()
