@@ -1,103 +1,85 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+import math
+from classification import load_data
 
-########################################################################################################################
-# PROBLEM 1
-########################################################################################################################
-# Given a vector x of (scalar) inputs and associated vector y of the target labels, and given
-# degree d of the polynomial, train a polynomial regression model and return the optimal weight vector.
-def trainPolynomialRegressor(x, y, d):
-    X = np.vander(x, d + 1, True).T
-    return np.linalg.solve(X @ X.T, X @ y)
 
-########################################################################################################################
-# PROBLEM 2
-########################################################################################################################
-# Given training and testing data, learning rate epsilon, batch size, and regularization strength alpha,
-# conduct stochastic gradient descent (SGD) to optimize the weight matrix Wtilde (785x10).
-# Then return Wtilde.
-def softmaxRegression(trainingImages, trainingLabels, epsilon, batchSize, alpha):
-    return stochasticGradDescent(trainingImages, trainingLabels, epsilon, batchSize, alpha)
+def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLabels, epsilon, batchSize, alpha):    
+    print("Shape of training images: ")
+    print(trainingImages.shape)
+    print("Shape of training labels: ")
+    print(trainingLabels.shape)
+    print("Shape of testing images: ")
+    print(testingImages.shape)
+    w = 0.00001 * np.random.randn(trainingImages.shape[1], trainingLabels.shape[1]) # initialzie w to random numbers
+    print("Shape of w: ")
+    print(w.shape)
+    num_samples = trainingImages.shape[0]
+    shuffled_indices = np.random.permutation(num_samples)
+    train_image_shuffled = trainingImages[shuffled_indices]
+    train_label_shuffled = trainingLabels[shuffled_indices]
+    for i in range(15): # num epochs
+        count  = 0
+        print(i)
+        for k in range(0, num_samples, batchSize):
+            image_batch = train_image_shuffled[k:k+batchSize]
+            label_batch = train_label_shuffled[k:k+batchSize]
+            z = np.dot(image_batch, w)
+            yhat = np.exp(z)
+            yhat = yhat / (np.sum(yhat, axis = 1, keepdims=True))
+            grad = (image_batch.T @ (yhat-label_batch))/batchSize
+            L2 = (alpha/batchSize) * w
+            L2[-1, :] = 0
+            grad = grad + L2
+            w = w - (epsilon * grad)  # update w
 
-def stochasticGradDescent(Xtilde, Y, epsilon, ntilde, alpha):
-    Wtilde = 1e-5 * np.random.randn(Xtilde.shape[0], Y.shape[1])
-    numEpochs = 3
-    n = Y.shape[0]
-    newIndices = np.random.permutation(n)
-    for _ in range(numEpochs):
-        for r in range(int(np.ceil(n / ntilde))):
-            indices = newIndices[ntilde * r : ntilde * (r + 1)]
-            Wtilde -= epsilon * gradfCE_reg(Xtilde[:, indices], Wtilde, Y[indices], 0)
-            print(f"{ntilde * r}-{ntilde * (r + 1)}:\t{fCE_reg(Xtilde, Wtilde, Y, alpha)}")
-    return Wtilde
+         
+    print("Shape of gradient")
+    print(grad.shape)
+    return w
 
-def fPC(Xtilde, Wtilde, Y):
-    Yhat = softmax(Xtilde, Wtilde)
-    return np.count_nonzero(Y.argmax(axis=1) == Yhat.argmax(axis=1)) / Y.shape[0]
 
-def fCE_reg(Xtilde, Wtilde, Y, alpha):
-    Yhat = softmax(Xtilde, Wtilde)
-    n = Y.shape[0]
-    return (-1 * (Y * np.log(Yhat)).sum() / n) + ((alpha / (2 * n)) * (Wtilde[:-1] * Wtilde[:-1]).sum())
+def visualize_weights(w, title):
+    for i in range(w.shape[1]):
+        weight_image = w[:-1, i].reshape(28, 28)
+        plt.imshow(weight_image, cmap='plasma')
+        plt.title(f"{title} of Column {i}")
+        plt.colorbar()
+        plt.show()
 
-def gradfCE_reg(Xtilde, Wtilde, Y, alpha):
-    Yhat = softmax(Xtilde, Wtilde)
-    n = Y.shape[0]
-    newWtilde = (Xtilde @ (Yhat - Y)) / n
-    L2 = (alpha / n) * Wtilde[:-1]
-    return np.vstack((newWtilde[:-1] + L2, newWtilde[-1]))
 
-def softmax(Xtilde, Wtilde):
-    Z = Xtilde.T @ Wtilde
-    return np.exp(Z) / np.exp(Z).sum(axis=1)[:, np.newaxis]
-
-if __name__ == "__main__":
-    # Test case 1: Quadratic function
-    x = np.linspace(-1, 1, 10)
-    y = x**2 - 2*x + 1  # y = x^2 - 2x + 1
-    w = trainPolynomialRegressor(x, y, 2)
-    expected_w = np.array([1, -2, 1])
-    assert np.allclose(w, expected_w, atol=1e-5), f"Test case 1 failed: {w} != {expected_w}"
-
-    # Test case 2: Linear function
-    x = np.linspace(-1, 1, 10)
-    y = 3*x + 5  # y = 3x + 5
-    w = trainPolynomialRegressor(x, y, 1)
-    expected_w = np.array([5, 3])
-    assert np.allclose(w, expected_w, atol=1e-5), f"Test case 2 failed: {w} != {expected_w}"
-    
-    # Test case 3: Cubic function
-    x = np.linspace(-2, 2, 10)
-    y = 2*x**3 - 4*x**2 + 3*x - 7  # y = 2x^3 - 4x^2 + 3x - 7
-    w = trainPolynomialRegressor(x, y, 3)
-    expected_w = np.array([-7, 3, -4, 2])
-    assert np.allclose(w, expected_w, atol=1e-5), f"Test case 3 failed: {w} != {expected_w}"
-    
-    print("All test cases passed!")
-    
-
-    # Load data
-    trainingImages = np.load("fashion_mnist_train_images.npy") / 255.0  # Normalizing by 255 helps accelerate training
-    trainingLabels = np.load("fashion_mnist_train_labels.npy")
-    testingImages = np.load("fashion_mnist_test_images.npy") / 255.0  # Normalizing by 255 helps accelerate training
-    testingLabels = np.load("fashion_mnist_test_labels.npy")
-
+   
+if __name__ == "__main__":    
+    trainingImages, trainingLabels, testingImages = load_data()
+    print(f"Very beginning train {trainingImages.shape}")
+    print(f"Very beginning test {testingImages.shape}")
     # Append a constant 1 term to each example to correspond to the bias terms
-    trainingImages = np.vstack((trainingImages.T, np.ones((1, trainingImages.shape[0]))))
-    testingImages = np.vstack((testingImages.T, np.ones((1, testingImages.shape[0]))))
+    training_ones = np.ones((1,trainingImages.shape[0]))
 
-    # Change from 0-9 labels to "one-hot" binary vector labels. For instance, 
-    # if the label of some example is 3, then its y should be [ 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 ]
-    newTrainingLabels = np.zeros((trainingLabels.shape[0], 10))
-    newTrainingLabels[np.arange(trainingLabels.shape[0]), trainingLabels] = 1
-    newTestingLabels = np.zeros((testingLabels.shape[0], 10))
-    newTestingLabels[np.arange(testingLabels.shape[0]), testingLabels] = 1
+    Xtilde_train = np.vstack((trainingImages.T, training_ones)).T
+    print(f"Shape of training images before deleting: {Xtilde_train.shape}")
+    Xtilde_train = np.delete(Xtilde_train, 519, axis=1) # deleting column 519
+    Xtilde_train = Xtilde_train
+    trainingLabels = trainingLabels
+
+    testing_ones = np.ones((1,testingImages.shape[0]))
+    Xtilde_test = np.vstack((testingImages.T, testing_ones)).T
+    print(f"Shape of testing images before deleting: {Xtilde_test.shape}")
+    Xtilde_test = np.delete(Xtilde_test, 519, axis=1)# deleted column 519 
+
+    trainingImages = Xtilde_train
+    testingImages = Xtilde_test
+
 
     # Train the model
-    Wtilde = softmaxRegression(trainingImages, newTrainingLabels, epsilon=0.1, batchSize=100, alpha=0.1)
-    print(f"fPC:\t{fPC(testingImages, Wtilde, newTestingLabels)}")
-    
-    # Visualize the vectors
-    for i in range(Wtilde.shape[1]):
-        plt.imshow(Wtilde[:-1, i].reshape(28, 28), cmap="gray")
-        plt.show()
+    Wtilde = softmaxRegression(trainingImages, trainingLabels, testingImages, trainingLabels, epsilon=0.1, batchSize=100, alpha=.1)
+    print(f"Training images shape:{trainingImages.shape}")
+    print(f"Testing images shape:{testingImages.shape}")
+
+    z = np.dot(testingImages, Wtilde)
+    yhat = np.exp(z)
+    yhat = yhat / (np.sum(yhat, axis = 1, keepdims=True))
+    yhat_onehot = np.zeros_like(yhat)
+    yhat_onehot[np.arange(len(yhat)), yhat.argmax(1)] = 1
+    print(all(yhat_onehot[:,0] == 1))
