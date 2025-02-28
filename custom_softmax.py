@@ -58,14 +58,14 @@ if __name__ == "__main__":
 
     Xtilde_train = np.vstack((trainingImages.T, training_ones)).T
     print(f"Shape of training images before deleting: {Xtilde_train.shape}")
-    Xtilde_train = np.delete(Xtilde_train, 519, axis=1) # deleting column 519
+    # Xtilde_train = np.delete(Xtilde_train, 519, axis=1) # deleting column 519
     Xtilde_train = Xtilde_train
     trainingLabels = trainingLabels
 
     testing_ones = np.ones((1,testingImages.shape[0]))
     Xtilde_test = np.vstack((testingImages.T, testing_ones)).T
     print(f"Shape of testing images before deleting: {Xtilde_test.shape}")
-    Xtilde_test = np.delete(Xtilde_test, 519, axis=1)# deleted column 519 
+    # Xtilde_test = np.delete(Xtilde_test, 519, axis=1)# deleted column 519 
 
     trainingImages = Xtilde_train
     testingImages = Xtilde_test
@@ -86,5 +86,3 @@ disease = yhat_onehot.argmax(axis=1)
 
 df = pd.DataFrame({'candidateID': testingIDs, 'disease': disease})
 df.to_csv('submission.csv', index = False) # write to csv file
-
-
