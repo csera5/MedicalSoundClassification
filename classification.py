@@ -44,13 +44,8 @@ def load_data():
 
     cough_noise = np.random.default_rng().normal(0, 1e-1, train_coughs.shape)
     age_noise = np.random.default_rng().normal(0, 1, Xtrain[:, 1].shape)
-    print((Xtrain[:, :512] + cough_noise).shape)
-    print(Xtrain[:, 512].shape)
-    print(age_noise.shape)
-    print((Xtrain[:, 512] + age_noise).shape)
     Xtrain = np.vstack((Xtrain, np.append(np.fliplr(Xtrain[:, :512]), Xtrain[:, 512:], axis=1), np.concatenate((Xtrain[:, :512] + cough_noise, np.atleast_2d(Xtrain[:, 512] + age_noise).T, Xtrain[:, 513:]), axis=1)))
-    # Xtrain = np.concatenate((Xtrain, Xtrain[:, :512] + cough_noise, Xtrain[:, 513:]), axis=0)
-    onehot_train_labels = np.tile(onehot_train_labels, (2, 1))
+    onehot_train_labels = np.tile(onehot_train_labels, (3, 1))
     print(Xtrain.shape)
 
     return Xtrain, onehot_train_labels, Xtest, XtestIDs
