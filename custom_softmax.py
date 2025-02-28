@@ -66,7 +66,7 @@ if __name__ == "__main__":
     print(f"Testing images shape:{testingImages.shape}")
 
     # Train the model
-    Wtilde = softmaxRegression(trainingImages, trainingLabels, testingImages, trainingLabels, epsilon=0.002, batchSize=64, alpha=.2)
+    Wtilde = softmaxRegression(trainingImages, trainingLabels, testingImages, trainingLabels, epsilon=0.001, batchSize=64, alpha=.2)
 
     z = np.dot(testingImages, Wtilde)
     z_train = np.dot(trainingImages, Wtilde)
