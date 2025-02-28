@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import torch
 from classification import load_data
 import matplotlib.pyplot as plt
-
+import pandas as pd
 
 ##########################
 ### SETTINGS
@@ -17,15 +17,14 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Hyperparameters
 random_seed = 123
 learning_rate = 0.001
-num_epochs = 100
 batch_size = 64
 
 # Architecture
-num_features = 521
+num_features = 520
 num_classes = 3
 
 
-EPOCHS = 250
+EPOCHS = 50
 X, y_train, X_test, testingIDs, X_train  = load_data() # loads data 
 
 X_train = torch.tensor(X_train, dtype=torch.float32)
@@ -36,7 +35,7 @@ X_test = torch.tensor(X_test, dtype=torch.float32)
 X_train = torch.cat((X_train[:, :519], X_train[:, 519+1:]), dim=1) # gets rid of nans
 X_test = torch.cat((X_test[:, :519], X_test[:, 519+1:]), dim=1) 
 
-
+X_train_features = X_train[:, :-1]
 # Custom Dataset Class
 class CustomDataset(Dataset):
     def __init__(self, features, labels):
@@ -51,7 +50,7 @@ class CustomDataset(Dataset):
         return self.features[idx], self.labels[idx]
 
 # Modify train_loader and test_loader
-train_dataset = CustomDataset(X_train, y_train)
+train_dataset = CustomDataset(X_train_features, y_train)
 test_dataset = CustomDataset(X_test, y_train)  
 
 train_loader = DataLoader(dataset=train_dataset, 
@@ -96,7 +95,7 @@ def compute_accuracy(model, data_loader):
     correct_pred, num_examples = 0, 0
     
     for features, targets in data_loader:
-        features = features.view(-1, 521).to(device)
+        features = features.view(-1, num_features).to(device)
         targets = targets.to(device)
         logits, probas = model(features)
         _, predicted_labels = torch.max(probas, 1)
@@ -105,19 +104,14 @@ def compute_accuracy(model, data_loader):
         
     return correct_pred.float() / num_examples * 100
 
-for epoch in range(num_epochs):
+for epoch in range(EPOCHS):
     for batch_idx, (features, targets) in enumerate(train_loader):
-        
-        # Flatten the features to match the expected input size for the linear layer (523)
-        features = features.view(-1, 521).to(device)  # Flatten to size (batch_size, 523)
+        features = features.view(-1, num_features).to(device) 
         targets = targets.to(device)
             
         ### FORWARD AND BACK PROP
         logits, probas = model(features)
         
-        # note that the PyTorch implementation of
-        # CrossEntropyLoss works with logits, not
-        # probabilities
         cost = F.cross_entropy(logits, targets)
         optimizer.zero_grad()
         cost.backward()
@@ -128,12 +122,31 @@ for epoch in range(num_epochs):
         ### LOGGING
         if not batch_idx % 50:
             print ('Epoch: %03d/%03d | Batch %03d/%03d | Cost: %.4f' 
-                   %(epoch+1, num_epochs, batch_idx, 
+                   %(epoch+1, EPOCHS, batch_idx, 
                      len(train_dataset)//batch_size, cost))
             
     with torch.set_grad_enabled(False):
         print('Epoch: %03d/%03d training accuracy: %.2f%%' % (
-              epoch+1, num_epochs, 
+              epoch+1, EPOCHS, 
               compute_accuracy(model, train_loader)))
 
 print('Final train accuracy: %.2f%%' % (compute_accuracy(model, train_loader)))  
+
+predictions = []
+
+for features, targets in test_loader:
+    features = features.view(features.size(0), num_features).to(device)  # Flatten each sample to 521 features
+    targets = targets.to(device)
+    logits, probas = model(features)
+    _, predicted_labels = torch.max(probas, 1)
+    predictions.extend(predicted_labels.cpu().numpy()) 
+
+
+df = pd.DataFrame({
+    'candidateID': testingIDs,  
+    'disease': predictions
+})
+
+# Save the DataFrame to a CSV file
+df.to_csv('submission.csv', index=False)
+print("Predictions saved to submission.csv")
