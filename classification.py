@@ -8,13 +8,12 @@ NUM_CLASSES = 3
 def load_data():
     trainingData = pandas.read_csv("train.csv")
     testingData = pandas.read_csv("test.csv")
-
     Xtrain = trainingData.to_numpy()[:, :-1] # ignores labels in last column
+    Xtrainall = trainingData.to_numpy()[:,:]
     Xtest = testingData.to_numpy()
     XtestIDs = Xtest[:,0]
     Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T # grabs labels from last column
     Ytrain = Ytrain.reshape(Ytrain.shape[0] , 1) # makes shape a 2d array, easier for later
-
     num_train = Xtrain.shape[0]
     num_test = Xtest.shape[0]
     train_coughs = np.zeros((num_train, ENCODING))
@@ -31,7 +30,9 @@ def load_data():
         test_coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for test participants
 
     Xtrain = np.append(train_coughs, Xtrain[:, 1:].astype(float), axis=1) # adds coughs to Xtrain array
+    Xtrainall = np.append(train_coughs, Xtrainall[:, 1:].astype(float), axis=1) # adds coughs to Xtrain array
     Xtest = np.append(test_coughs, Xtest[:, 1:].astype(float), axis=1) # adds coughs to Ytest array
-    return Xtrain, onehot_train_labels, Xtest, XtestIDs
+    return Xtrain, onehot_train_labels, Xtest, XtestIDs, Xtrainall 
 
-load_data()
+Xtrain, onehot_train_labels, Xtest, XtestIDs, Xtrainall = load_data()
+# print(Xtrainall.shape)

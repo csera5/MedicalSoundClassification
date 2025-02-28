@@ -1,54 +1,70 @@
+from torchvision import datasets
+from torchvision import transforms
+from torch.utils.data import DataLoader, Dataset
+import torch.nn.functional as F
 import torch
-import torch.nn as nn
-import torch.optim as optim
 from classification import load_data
-import pandas as pd
+
+
+##########################
+### SETTINGS
+##########################
+
+# Device
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+# Hyperparameters
+random_seed = 123
+learning_rate = 0.001
+num_epochs = 100
+batch_size = 256
+
+# Architecture
+num_features = 523
+num_classes = 3
+
 
 EPOCHS = 100
-X_train, y_train, X_test, testingIDs = load_data() # loads data 
-
+X, y_train, X_test, testingIDs, X_train  = load_data() # loads data 
 
 X_train = torch.tensor(X_train, dtype=torch.float32)
 y_train = torch.tensor(y_train, dtype=torch.long)
-y_train = torch.argmax(y_train, dim = 1)
+y_train = torch.argmax(y_train, dim = 1) # reverts one_hot for labels
 X_test = torch.tensor(X_test, dtype=torch.float32)
 
 X_train = torch.cat((X_train[:, :519], X_train[:, 519+1:]), dim=1) # gets rid of nans
 X_test = torch.cat((X_test[:, :519], X_test[:, 519+1:]), dim=1) 
 
 
-class SoftmaxRegression(nn.Module):
-    def __init__(self, input_dim, output_dim):
-        super(SoftmaxRegression, self).__init__()
-        self.linear = nn.Linear(input_dim, output_dim)
+# Custom Dataset Class
+class CustomDataset(Dataset):
+    def __init__(self, features, labels):
+        self.features = features
+        self.labels = labels
     
-    def forward(self, x):
-        return self.linear(x)
+    def __len__(self):
+        return len(self.features)
+    
+    def __getitem__(self, idx):
+        # Return a tuple (feature, label)
+        return self.features[idx], self.labels[idx]
 
-input_dim = X_train.shape[1]
-output_dim = len(torch.unique(y_train))
-model = SoftmaxRegression(input_dim, output_dim)
+# Modify train_loader and test_loader
+train_dataset = CustomDataset(X_train, y_train)
+test_dataset = CustomDataset(X_test, y_train)  
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.01)
+train_loader = DataLoader(dataset=train_dataset, 
+                          batch_size=batch_size, 
+                          shuffle=True)
 
-num_epochs = 100
-for epoch in range(num_epochs):
-    optimizer.zero_grad()
-    outputs = model(X_train)
-    loss = criterion(outputs, y_train)
-    loss.backward()
-    optimizer.step()
+test_loader = DataLoader(dataset=test_dataset, 
+                         batch_size=batch_size, 
+                         shuffle=False)
 
-# Evaluation
-with torch.no_grad():
-    model.eval()
-    test_outputs = model(X_test)
-    _, y_pred_tensor = torch.max(test_outputs, 1)
-    y_pred = y_pred_tensor.numpy()
+# Check the dimensions
+for images, labels in train_loader:  
+    print('Image batch dimensions:', images.shape)
+    print('Label batch dimensions:', labels.shape)
+    break
 
-# Calculate accuracy
-print(y_pred)
 
-df = pd.DataFrame({'candidateID': testingIDs, 'disease': y_pred})
-df.to_csv('submission.csv', index = False) # write to csv file
