@@ -51,15 +51,7 @@ def load_data():
             test_vowels[i] = np.load(f"sounds/sounds/{candidateIds[i]}/vowel-opera.npy")
         except:
             print(i, candidateIds[i])
-            # np.delete(Xtest, i, axis=0)
-            # np.delete(test_vowels, i, axis=0)
-            # np.delete(test_coughs, i, axis=0)
         test_coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for each participant
-    # print(test_vowels.shape)
-    # print(test_vowels.sum(axis=1).shape)
-    # print(test_vowels[test_vowels.sum(axis=1) == 0].shape)
-    # print(test_vowels[test_vowels.sum(axis=1) != 0].mean(axis=0).shape)
-    # print(train_vowels.mean(axis=0).shape)
     test_vowels[test_vowels.sum(axis=1) == 0] = train_vowels.mean(axis=0)
 
     Xtrain = np.concatenate((train_coughs, train_vowels, Xtrain[:, 1:8].astype(float), onehot_train_coldpresent, np.atleast_2d(Xtrain[:, 9]).T.astype(float)), axis=1, dtype=float) # adds coughs to Xtrain array
@@ -67,10 +59,8 @@ def load_data():
 
     cough_noise = np.random.default_rng().normal(0, 1e-1, train_coughs.shape)
     vowel_noise = np.random.default_rng().normal(0, 1e-2, train_vowels.shape)
-    print("Xtrain", Xtrain[:, ENCODING:(ENCODING * 2)].shape)
-    age_noise = np.random.default_rng().normal(0, 1, Xtrain[:, ENCODING].shape) 
+    age_noise = np.random.default_rng().normal(0, 1, Xtrain[:, ENCODING].shape)
     Xtrain = np.vstack((Xtrain, np.concatenate((Xtrain[:, :ENCODING] + cough_noise, Xtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(Xtrain[:, ENCODING * 2] + age_noise).T, Xtrain[:, (ENCODING * 2) + 1:]), axis=1)))
-    # Xtrain = np.vstack((Xtrain, np.concatenate((Xtrain[:, :ENCODING] + cough_noise, np.atleast_2d(Xtrain[:, ENCODING] + age_noise).T, Xtrain[:, ENCODING + 1:]), axis=1)))
 
     onehot_train_labels = np.tile(onehot_train_labels, (2, 1))
     print()
