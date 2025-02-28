@@ -17,8 +17,6 @@ def load_data():
 
     num_train = Xtrain.shape[0]
     num_test = Xtest.shape[0]
-    train_coughs = np.zeros((num_train, ENCODING))
-    test_coughs = np.zeros((num_test, ENCODING))
     onehot_train_labels = np.zeros((num_train, NUM_CLASSES)) # 3 classes to predict
     onehot_train_labels[np.arange(num_train), Ytrain[:, 0].astype(int)] = 1 # performs one hot encoding
 
@@ -31,22 +29,53 @@ def load_data():
     onehot_test_coldpresent[Xtest[:, 8] == 1, 1] = 1
     onehot_test_coldpresent[np.isnan(Xtest[:, 8].astype(float)), 2] = 1
 
+    train_coughs = np.zeros((num_train, ENCODING))
+    test_coughs = np.zeros((num_test, ENCODING))
+    train_vowels = np.zeros((num_train, ENCODING))
+    test_vowels = np.zeros((num_test, ENCODING))
     candidateIds = Xtrain[:, 0]
     for i in range(num_train):
-        train_coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for each participant
+        try:
+            train_vowels[i] = np.load(f"sounds/sounds/{candidateIds[i]}/vowel-opera.npy")
+            train_coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for each participant
+        except:
+            print(candidateIds[i])
+            np.delete(Xtrain, i, axis=0)
+            np.delete(train_vowels, i, axis=0)
+            np.delete(train_coughs, i, axis=0)
 
+    print()
     candidateIds = Xtest[:, 0]
     for i in range(num_test):
-        test_coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for test participants
+        try:
+            test_vowels[i] = np.load(f"sounds/sounds/{candidateIds[i]}/vowel-opera.npy")
+        except:
+            print(i, candidateIds[i])
+            # np.delete(Xtest, i, axis=0)
+            # np.delete(test_vowels, i, axis=0)
+            # np.delete(test_coughs, i, axis=0)
+        test_coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for each participant
+    # print(test_vowels.shape)
+    # print(test_vowels.sum(axis=1).shape)
+    # print(test_vowels[test_vowels.sum(axis=1) == 0].shape)
+    # print(test_vowels[test_vowels.sum(axis=1) != 0].mean(axis=0).shape)
+    # print(train_vowels.mean(axis=0).shape)
+    test_vowels[test_vowels.sum(axis=1) == 0] = train_vowels.mean(axis=0)
 
-    Xtrain = np.concatenate((train_coughs, Xtrain[:, 1:8].astype(float), onehot_train_coldpresent, np.atleast_2d(Xtrain[:, 9]).T.astype(float)), axis=1, dtype=float) # adds coughs to Xtrain array
-    Xtest = np.concatenate((test_coughs, Xtest[:, 1:8].astype(float), onehot_test_coldpresent, np.atleast_2d(Xtest[:, 9]).T.astype(float)), axis=1, dtype=float) # adds coughs to Ytest array
+    Xtrain = np.concatenate((train_coughs, train_vowels, Xtrain[:, 1:8].astype(float), onehot_train_coldpresent, np.atleast_2d(Xtrain[:, 9]).T.astype(float)), axis=1, dtype=float) # adds coughs to Xtrain array
+    Xtest = np.concatenate((test_coughs, test_vowels, Xtest[:, 1:8].astype(float), onehot_test_coldpresent, np.atleast_2d(Xtest[:, 9]).T.astype(float)), axis=1, dtype=float) # adds coughs to Ytest array
 
     cough_noise = np.random.default_rng().normal(0, 1e-1, train_coughs.shape)
-    age_noise = np.random.default_rng().normal(0, 1, Xtrain[:, 1].shape)
-    Xtrain = np.vstack((Xtrain, np.append(np.fliplr(Xtrain[:, :512]), Xtrain[:, 512:], axis=1), np.concatenate((Xtrain[:, :512] + cough_noise, np.atleast_2d(Xtrain[:, 512] + age_noise).T, Xtrain[:, 513:]), axis=1)))
-    onehot_train_labels = np.tile(onehot_train_labels, (3, 1))
+    vowel_noise = np.random.default_rng().normal(0, 1e-2, train_vowels.shape)
+    print("Xtrain", Xtrain[:, ENCODING:(ENCODING * 2)].shape)
+    age_noise = np.random.default_rng().normal(0, 1, Xtrain[:, ENCODING].shape) 
+    Xtrain = np.vstack((Xtrain, np.concatenate((Xtrain[:, :ENCODING] + cough_noise, Xtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(Xtrain[:, ENCODING * 2] + age_noise).T, Xtrain[:, (ENCODING * 2) + 1:]), axis=1)))
+    # Xtrain = np.vstack((Xtrain, np.concatenate((Xtrain[:, :ENCODING] + cough_noise, np.atleast_2d(Xtrain[:, ENCODING] + age_noise).T, Xtrain[:, ENCODING + 1:]), axis=1)))
+
+    onehot_train_labels = np.tile(onehot_train_labels, (2, 1))
+    print()
     print(Xtrain.shape)
+    print(Xtest.shape)
 
     return Xtrain, onehot_train_labels, Xtest, XtestIDs
 
