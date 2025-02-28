@@ -52,7 +52,14 @@ def load_data():
         except:
             print(i, candidateIds[i])
         test_coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for each participant
-    test_vowels[test_vowels.sum(axis=1) == 0] = train_vowels.mean(axis=0)
+    # all_vowels = np.vstack((train_vowels, test_vowels[test_vowels.sum(axis=1) != 0]))
+    # Xall = np.vstack((Xtrain, Xtest[test_vowels.sum(axis=1) != 0]))
+    # print(train_vowels[np.logical_and(Xtrain[:, 5] == 1, Xtrain[:, 1] < Xtrain[:, 1].mean())].mean(axis=0)[:20])
+    # print(all_vowels[np.logical_and(Xall[:, 5] == 1, Xall[:, 1] < Xall[:, 1].mean())].mean(axis=0)[:20])
+    # test_vowels[np.logical_and(test_vowels.sum(axis=1) == 0, Xtest[:, 5] == 1)] = all_vowels[np.logical_and(Xall[:, 5] == 1, Xall[:, 1] < Xall[:, 1].mean())].mean(axis=0)
+    # test_vowels[np.logical_and(test_vowels.sum(axis=1) == 0, Xtest[:, 5] == 0)] = all_vowels[np.logical_and(Xall[:, 5] == 0, Xall[:, 1] > Xall[:, 1].mean())].mean(axis=0)
+    test_vowels[np.logical_and(test_vowels.sum(axis=1) == 0, Xtest[:, 5] == 1)] = train_vowels[np.logical_and(Xtrain[:, 5] == 1, Xtrain[:, 1] < Xtrain[:, 1].mean())].mean(axis=0)
+    test_vowels[np.logical_and(test_vowels.sum(axis=1) == 0, Xtest[:, 5] == 0)] = train_vowels[np.logical_and(Xtrain[:, 5] == 0, Xtrain[:, 1] > Xtrain[:, 1].mean())].mean(axis=0)
 
     Xtrain = np.concatenate((train_coughs, train_vowels, Xtrain[:, 1:8].astype(float), onehot_train_coldpresent, np.atleast_2d(Xtrain[:, 9]).T.astype(float)), axis=1, dtype=float) # adds coughs to Xtrain array
     Xtest = np.concatenate((test_coughs, test_vowels, Xtest[:, 1:8].astype(float), onehot_test_coldpresent, np.atleast_2d(Xtest[:, 9]).T.astype(float)), axis=1, dtype=float) # adds coughs to Ytest array
