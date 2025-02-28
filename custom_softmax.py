@@ -13,7 +13,7 @@ def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLab
     # print("Shape of testing images: ")
     # print(testingImages.shape)
 
-    w = 0.00001 * np.random.randn(trainingImages.shape[1], trainingLabels.shape[1]) # initialzie w to random numbers
+    w = 0.0001 * np.random.randn(trainingImages.shape[1], trainingLabels.shape[1]) # initialzie w to random numbers
     print("Shape of w: ")
     print(w.shape)
     num_samples = trainingImages.shape[0]
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     print(f"Testing images shape:{testingImages.shape}")
 
     # Train the model
-    Wtilde = softmaxRegression(trainingImages, trainingLabels, testingImages, trainingLabels, epsilon=0.001, batchSize=64, alpha=.1)
+    Wtilde = softmaxRegression(trainingImages, trainingLabels, testingImages, trainingLabels, epsilon=0.001, batchSize=64, alpha=.2)
 
     z = np.dot(testingImages, Wtilde)
     yhat = np.exp(z)
@@ -85,6 +85,6 @@ if __name__ == "__main__":
 disease = yhat_onehot.argmax(axis=1)
 
 df = pd.DataFrame({'candidateID': testingIDs, 'disease': disease})
-df.to_csv('predictions.csv', index = False) # write to csv file
+df.to_csv('submission.csv', index = False) # write to csv file
 
 

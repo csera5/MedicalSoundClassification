@@ -1,8 +1,9 @@
 import numpy as np
-import scipy
+# import scipy
 import pandas
 
 ENCODING = 512
+NUM_CLASSES = 3
 
 def load_data():
     trainingData = pandas.read_csv("train.csv")
@@ -18,7 +19,7 @@ def load_data():
     num_test = Xtest.shape[0]
     train_coughs = np.zeros((num_train, ENCODING))
     test_coughs = np.zeros((num_test, ENCODING))
-    onehot_train_labels = np.zeros((num_train, 3)) # 3 classes to predict
+    onehot_train_labels = np.zeros((num_train, NUM_CLASSES)) # 3 classes to predict
     onehot_train_labels[np.arange(num_train), Ytrain[:, 0].astype(int)] = 1 # performs one hot encoding
 
     candidateIds = Xtrain[:, 0]
