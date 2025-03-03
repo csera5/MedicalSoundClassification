@@ -48,13 +48,42 @@ def load_data():
         #     np.delete(Xtrain, i, axis=0)
         #     np.delete(train_vowels, i, axis=0)
         #     np.delete(train_coughs, i, axis=0)
+        
+        # vowels = np.zeros((0, ENCODING))
+        # vowel = np.zeros((0, ENCODING))
+        # try:
+        #     with open(f"sounds/sounds/{candidateIds[i]}/emb_vowel.json") as f:
+        #         vowels = np.array(json.load(f))
+        # except:
+        #     pass
+        # try:
+        #     vowel = np.load(f"sounds/sounds/{candidateIds[i]}/vowel-opera.npy")
+        # except:
+        #     pass
+        # vowels = np.append(vowels, vowel, axis=0)
+        # if vowels.shape[0] == 0:
+        #     continue
+
+        coughs = np.zeros((0, ENCODING))
+        cough = np.zeros((0, ENCODING))
         try:
             with open(f"sounds/sounds/{candidateIds[i]}/emb_cough.json") as f:
-                coughs = np.append(np.array(json.load(f)), np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy"), axis=0)
-                newXtrain = np.concatenate((newXtrain, np.concatenate((coughs, np.tile(Xtrain[i], (coughs.shape[0], 1))), axis=1)), axis=0)
-                new_onehot_train_labels = np.append(new_onehot_train_labels, np.tile(onehot_train_labels[i], (coughs.shape[0], 1)), axis=0)
+                coughs = np.array(json.load(f))
         except:
-            continue
+            pass
+        cough = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy")
+        coughs = np.append(coughs, cough, axis=0)
+
+        newXtrain = np.concatenate((newXtrain, np.concatenate((coughs, np.tile(Xtrain[i], (coughs.shape[0], 1))), axis=1)), axis=0)
+        new_onehot_train_labels = np.append(new_onehot_train_labels, np.tile(onehot_train_labels[i], (coughs.shape[0], 1)), axis=0)
+
+        # try:
+        #     with open(f"sounds/sounds/{candidateIds[i]}/emb_cough.json") as f:
+        #         coughs = np.append(np.array(json.load(f)), np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy"), axis=0)
+        #         newXtrain = np.concatenate((newXtrain, np.concatenate((coughs, np.tile(Xtrain[i], (coughs.shape[0], 1))), axis=1)), axis=0)
+        #         new_onehot_train_labels = np.append(new_onehot_train_labels, np.tile(onehot_train_labels[i], (coughs.shape[0], 1)), axis=0)
+        # except:
+        #     continue
 
     print()
     candidateIds = Xtest[:, 0]
