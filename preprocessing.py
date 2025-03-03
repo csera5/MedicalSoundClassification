@@ -1,6 +1,6 @@
 import numpy as np
 import scipy
-from pandas import rms
+import librosa
 
 '''PREPROCESSING STARTER CODE '''
 def pad_audio(y, target_length):
@@ -42,18 +42,24 @@ def segment_cough_sound(signal, sr, cough_threshold=0.05, min_cough_duration=0.1
     if len(signal.shape) > 1:
         signal = np.mean(signal, axis=1)
 
-    energy = rms(y=signal, hop_length=hop_length)[0]
+    energy = librosa.feature.rms(y=signal, hop_length=hop_length)[0]
 
     # Normalize the energy values
-    normalized_energy = (energy - np.min(energy)) / (np.max(energy) - np.min(energy))
+    energy_min, energy_max = np.min(energy), np.max(energy)
+    if energy_max > energy_min:
+        normalized_energy = (energy - energy_min) / (energy_max - energy_min)
+    else:
+        normalized_energy = np.zeros_like(energy)
+
+    # normalized_energy = (energy - np.min(energy)) / (np.max(energy) - np.min(energy))
 
     # Set the energy threshold for event detection
     cough_threshold = np.max(normalized_energy) * cough_threshold
     min_cough_samples = round(sr * min_cough_duration)
 
-
     # Find the cough segments
     cough_segments = []
+    cough_times = []
     event_start = None
 
     for i, value in enumerate(normalized_energy):
@@ -68,9 +74,7 @@ def segment_cough_sound(signal, sr, cough_threshold=0.05, min_cough_duration=0.1
                     event_start -= int(padding * sr)
                     event_start = max(event_start, 0)
                     cough_segments.append(signal[event_start: event_end+1])
+                    cough_times.append((event_start / sr, event_end / sr))
                 event_start = None
 
-    # Convert cough segments to time in seconds
-    # cough_segments = [(start / sr, end / sr) for start, end in cough_segments]
-
-    return cough_segments
+    return cough_segments, cough_times

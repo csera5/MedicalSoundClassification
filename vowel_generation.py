@@ -8,8 +8,8 @@ def load_vowel_data():
     trainingData = pandas.read_csv("train.csv")
 
     # grab the training data from CSV
-    Xtrain = trainingData.to_numpy()[:, :-1] # ignores labels in last column
-    total_count = Xtrain.shape[0]
+    allX = trainingData.to_numpy()[:, :-1] # ignores labels in last column
+    total_count = allX.shape[0]
 
     # grab the XtrainOutput from the CSV and convert to onehot
     XtrainOutput = np.atleast_2d(trainingData.to_numpy()[:, -1]).T # grabs labels from last column
@@ -17,13 +17,15 @@ def load_vowel_data():
     onehot_train_labels = np.zeros((total_count, NUM_CLASSES)) # 3 classes to predict
     onehot_train_labels[np.arange(total_count), XtrainOutput[:, 0].astype(int)] = 1 # performs one hot encoding
 
-    # append Xtrain and XtrainOutput together
-    Xtrain = np.hstack((Xtrain, onehot_train_labels))
+    # append allX and XtrainOutput together
+    allX = np.hstack((allX, onehot_train_labels))
 
     coughs = np.zeros((total_count, ENCODING))
-    candidateIds = Xtrain[:, 0]
+    candidateIds = allX[:, 0]
     for i in range(total_count):
         coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for each participant
+
+    print(allX.shape)
 
     # break out Ytrain and Xtest
     vowels = np.zeros((total_count, ENCODING))
@@ -39,19 +41,21 @@ def load_vowel_data():
     testIndices = np.where(testIndices == 1)
     trainIndices = np.where(trainIndices == 1)
 
-    train_vowels = vowels[trainIndices]
     train_coughs = coughs[trainIndices]
     test_coughs = coughs[testIndices]
 
-    Xtest = Xtrain[testIndices]
-    Xtrain = Xtrain[trainIndices]
+    Xtest = allX[testIndices]
+    Xtrain = allX[trainIndices]
     
-    Ytrain = vowels[testIndices]
+    Ytrain = vowels[trainIndices]
 
     Xtrain = np.append(train_coughs, Xtrain[:, 1:].astype(float), axis=1) # adds coughs to Xtrain array, remove candidateIDs
     
-    Xtest = np.append(test_coughs, Xtest[:, 1:].astype(float), axis=1) # adds coughs to Xtrain array, remove candidateIDs
+    Xtest = np.append(test_coughs, Xtest[:, 1:].astype(float), axis=1) # adds coughs to Xtest array, remove candidateIDs
 
     return Xtrain, Ytrain, Xtest
 
-load_vowel_data()
+Xtrain, Ytrain, Xtest = load_vowel_data()
+
+print(Xtrain.shape, Ytrain.shape, Xtest.shape)
+
