@@ -86,7 +86,8 @@ def load_vowel_data(type="npy"):
 
     cough_noise = np.random.default_rng().normal(0, 1e-2, (newXtrain.shape[0], ENCODING))
     age_noise = np.random.default_rng().normal(0, 1, (newXtrain.shape[0], 1))
-    newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING].reshape((newXtrain.shape[0], 1)) + age_noise, newXtrain[:, ENCODING + 1:]), axis=1)))
+    packYears_noise = np.random.default_rng().normal(0, 15, (newXtrain.shape[0], 1))
+    newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING].reshape((newXtrain.shape[0], 1)) + age_noise, newXtrain[:, ENCODING + 1:-1], np.atleast_2d(newXtrain[:, -1]).T + packYears_noise), axis=1)))
     newYtrain = np.tile(newYtrain, (2, 1))
 
     return newXtrain, newYtrain, Xtest, candidateIds[testIndices]

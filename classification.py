@@ -132,8 +132,9 @@ def load_data(testing=False):
     cough_noise = np.random.default_rng().normal(0, 1e-1, (newXtrain.shape[0], ENCODING))
     vowel_noise = np.random.default_rng().normal(0, 1e-1, (newXtrain.shape[0], ENCODING))
     age_noise = np.random.default_rng().normal(0, 1, (newXtrain.shape[0], 1))
+    packYears_noise = np.random.default_rng().normal(0, 15, (newXtrain.shape[0], 1))
     # Xtrain = np.vstack((Xtrain, np.concatenate((Xtrain[:, :ENCODING] + cough_noise, Xtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(Xtrain[:, ENCODING * 2] + age_noise).T, Xtrain[:, (ENCODING * 2) + 1:]), axis=1)))
-    newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(newXtrain[:, ENCODING * 2]).T + age_noise, newXtrain[:, ENCODING * 2 + 1:]), axis=1)))
+    newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(newXtrain[:, ENCODING * 2]).T + age_noise, newXtrain[:, ENCODING * 2 + 1:-1], np.atleast_2d(newXtrain[:, -1]).T + packYears_noise), axis=1)))
 
     new_onehot_train_labels = np.tile(new_onehot_train_labels, (2, 1))
     print()

@@ -42,7 +42,7 @@ def visualize_weights(w, title):
 
    
 if __name__ == "__main__":
-    testing = True
+    testing = False
 
     Xtrain, Ytrain, Xtest, Ytest = load_data(testing=testing)
     print(f"Xtrain: {Xtrain.shape}")
