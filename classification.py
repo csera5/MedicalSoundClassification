@@ -14,7 +14,7 @@ def load_data():
     Xtest = testingData.to_numpy()
     XtestIDs = Xtest[:, 0]
     Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T # grabs labels from last column
-    Ytrain = Ytrain.reshape(Ytrain.shape[0], 1) # makes shape a 2d array, easier for later
+    # Ytrain = Ytrain.reshape(Ytrain.shape[0], 1) # makes shape a 2d array, easier for later
 
     num_train = Xtrain.shape[0]
     num_test = Xtest.shape[0]
@@ -33,11 +33,11 @@ def load_data():
     candidateIds = Xtrain[:, 0]
     Xtrain = np.concatenate((Xtrain[:, 1:8].astype(float), onehot_train_coldpresent, Xtrain[:, 9].reshape(num_train, 1).astype(float)), axis=1, dtype=float)
 
-    train_coughs = np.zeros((num_train, ENCODING))
-    test_coughs = np.zeros((num_test, ENCODING))
-    train_vowels = np.zeros((num_train, ENCODING))
-    test_vowels = np.zeros((num_test, ENCODING))
-    newXtrain = np.zeros((0, 523))
+    # train_coughs = np.zeros((num_train, ENCODING))
+    # test_coughs = np.zeros((num_test, ENCODING))
+    # train_vowels = np.zeros((num_train, ENCODING))
+    # test_vowels = np.zeros((num_test, ENCODING))
+    newXtrain = np.zeros((0, ENCODING * 2 + 11))
     new_onehot_train_labels = np.zeros((0, 3))
     for i in range(num_train):
         # try:
@@ -50,16 +50,16 @@ def load_data():
         #     np.delete(train_coughs, i, axis=0)
         
         # vowels = np.zeros((0, ENCODING))
-        # vowel = np.zeros((0, ENCODING))
+        vowel = np.zeros((0, ENCODING))
         # try:
         #     with open(f"sounds/sounds/{candidateIds[i]}/emb_vowel.json") as f:
         #         vowels = np.array(json.load(f))
         # except:
         #     pass
-        # try:
-        #     vowel = np.load(f"sounds/sounds/{candidateIds[i]}/vowel-opera.npy")
-        # except:
-        #     pass
+        try:
+            vowel = np.load(f"sounds/sounds/{candidateIds[i]}/vowel-opera.npy")
+        except:
+            vowel = np.load(f"newSounds/{candidateIds[i]}/vowel-opera.npy")
         # vowels = np.append(vowels, vowel, axis=0)
         # if vowels.shape[0] == 0:
         #     continue
@@ -74,7 +74,7 @@ def load_data():
         cough = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy")
         coughs = np.append(coughs, cough, axis=0)
 
-        newXtrain = np.concatenate((newXtrain, np.concatenate((coughs, np.tile(Xtrain[i], (coughs.shape[0], 1))), axis=1)), axis=0)
+        newXtrain = np.concatenate((newXtrain, np.concatenate((coughs, np.tile(vowel, (coughs.shape[0], 1)), np.tile(Xtrain[i], (coughs.shape[0], 1))), axis=1)), axis=0)
         new_onehot_train_labels = np.append(new_onehot_train_labels, np.tile(onehot_train_labels[i], (coughs.shape[0], 1)), axis=0)
 
         # try:
@@ -88,20 +88,25 @@ def load_data():
     print()
     candidateIds = Xtest[:, 0]
     Xtest = np.concatenate((Xtest[:, 1:8].astype(float), onehot_test_coldpresent, Xtest[:, 9].reshape(num_test, 1).astype(float)), axis=1, dtype=float)
-    newXtest = np.zeros((0, 523))
+    newXtest = np.zeros((0, ENCODING * 2 + 11))
     for i in range(num_test):
         # try:
         #     test_vowels[i] = np.load(f"sounds/sounds/{candidateIds[i]}/vowel-opera.npy")
         # except:
         #     print(i, candidateIds[i])
         # test_coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for each participant
+        vowel = np.zeros((0, ENCODING))
+        try:
+            vowel = np.load(f"sounds/sounds/{candidateIds[i]}/vowel-opera.npy")
+        except:
+            vowel = np.load(f"newSounds/{candidateIds[i]}/vowel-opera.npy")
         try:
             with open(f"sounds/sounds/{candidateIds[i]}/emb_cough.json") as f:
                 coughs = np.array(json.load(f))
-                newXtest = np.append(newXtest, np.concatenate((coughs.mean(axis=1), Xtest[i]), axis=1), axis=0)
+                newXtest = np.append(newXtest, np.concatenate((coughs.mean(axis=1), np.atleast_2d(vowel), np.atleast_2d(Xtest[i])), axis=1), axis=0)
         except:
             cough = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy")
-            newXtest = np.append(newXtest, np.concatenate((cough, Xtest[i].reshape((1, Xtest.shape[1]))), axis=1), axis=0)
+            newXtest = np.append(newXtest, np.concatenate((cough, np.atleast_2d(vowel), np.atleast_2d(Xtest[i])), axis=1), axis=0)
 
     # all_vowels = np.vstack((train_vowels, test_vowels[test_vowels.sum(axis=1) != 0]))
     # Xall = np.vstack((Xtrain, Xtest[test_vowels.sum(axis=1) != 0]))
@@ -118,10 +123,10 @@ def load_data():
     # Xtest = np.concatenate((test_coughs, Xtest[:, 1:8].astype(float), onehot_test_coldpresent, np.atleast_2d(Xtest[:, 9]).T.astype(float)), axis=1, dtype=float) # adds coughs to Ytest array
 
     cough_noise = np.random.default_rng().normal(0, 1e-1, (newXtrain.shape[0], ENCODING))
-    # vowel_noise = np.random.default_rng().normal(0, 1e-2, train_vowels.shape)
-    age_noise = np.random.default_rng().normal(0, 1, newXtrain[:, ENCODING].shape)
+    vowel_noise = np.random.default_rng().normal(0, 1e-1, (newXtrain.shape[0], ENCODING))
+    age_noise = np.random.default_rng().normal(0, 1, (newXtrain.shape[0], 1))
     # Xtrain = np.vstack((Xtrain, np.concatenate((Xtrain[:, :ENCODING] + cough_noise, Xtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(Xtrain[:, ENCODING * 2] + age_noise).T, Xtrain[:, (ENCODING * 2) + 1:]), axis=1)))
-    newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, np.atleast_2d(newXtrain[:, ENCODING] + age_noise).T, newXtrain[:, ENCODING + 1:]), axis=1)))
+    newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(newXtrain[:, ENCODING * 2]).T + age_noise, newXtrain[:, ENCODING * 2 + 1:]), axis=1)))
 
     new_onehot_train_labels = np.tile(new_onehot_train_labels, (2, 1))
     print()
