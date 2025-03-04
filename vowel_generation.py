@@ -84,9 +84,9 @@ def load_vowel_data(type="npy"):
 
     Xtest = np.concatenate((test_coughs, Xtest[:, 1:8].astype(float), onehot_test_coldpresent, Xtest[:, 9:].astype(float)), axis=1) # adds coughs to Xtest array, remove candidateIDs
 
-    cough_noise = np.random.default_rng().normal(0, 1e-2, (newXtrain.shape[0], ENCODING))
+    cough_noise = np.random.default_rng().normal(0, 1e-1, (newXtrain.shape[0], ENCODING))
     age_noise = np.random.default_rng().normal(0, 1, (newXtrain.shape[0], 1))
-    packYears_noise = np.random.default_rng().normal(0, 15, (newXtrain.shape[0], 1))
+    packYears_noise = np.random.default_rng().normal(0, 10, (newXtrain.shape[0], 1))
     newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING].reshape((newXtrain.shape[0], 1)) + age_noise, newXtrain[:, ENCODING + 1:-1], np.atleast_2d(newXtrain[:, -1]).T + packYears_noise), axis=1)))
     newYtrain = np.tile(newYtrain, (2, 1))
 
