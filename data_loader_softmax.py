@@ -20,9 +20,8 @@ training_loader = torch.utils.data.DataLoader(training_set, batch_size=4, shuffl
 validation_loader = torch.utils.data.DataLoader(validation_set, batch_size=4, shuffle=False)
 
 # Class labels
-classes = ('T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
-        'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle Boot')
+classes = (0,1,2)
 
 # Report split sizes
 print('Training set has {} instances'.format(len(training_set)))
-print('Validation set has {} instances'.format(len(validation_set)))
+# print('Validation set has {} instances'.format(len(validation_set)))
