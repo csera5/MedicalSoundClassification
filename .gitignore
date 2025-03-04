@@ -3,6 +3,6 @@ data
 model_*
 runs
 __pycache__
-__pycache__/*
+__pycache__/
 OPERA
 submission.csv

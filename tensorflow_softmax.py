@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from classification import load_data
-
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 allTrainX, allTrainY, X_test, testIDs = load_data()
 allTrainX = np.delete(allTrainX, 519, axis=1) # deleting column 519
@@ -89,3 +90,4 @@ with tf1.Session(graph=graph) as session:
 				accuracy(valid_prediction.eval(), Y_val)))
 			
 feed_dict = {tf_train_dataset : batch_data, tf_train_labels : batch_labels}
+
