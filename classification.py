@@ -9,8 +9,8 @@ NUM_CLASSES = 3
 def load_data():
     trainingData = pandas.read_csv("train.csv")
     testingData = pandas.read_csv("test.csv")
-
     Xtrain = trainingData.to_numpy()[:, :-1] # ignores labels in last column
+    Xtrainall = trainingData.to_numpy()[:,:]
     Xtest = testingData.to_numpy()
     XtestIDs = Xtest[:, 0]
     Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T # grabs labels from last column
@@ -136,4 +136,5 @@ def load_data():
 
     return newXtrain, new_onehot_train_labels, newXtest, XtestIDs
 
-load_data()
+Xtrain, onehot_train_labels, Xtest, XtestIDs, Xtrainall = load_data()
+# print(Xtrainall.shape)

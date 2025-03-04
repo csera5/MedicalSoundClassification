@@ -6,13 +6,6 @@ from classification import load_data
 
 
 def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLabels, epsilon, batchSize, alpha):    
-    # print("Shape of training images: ")
-    # print(trainingImages.shape)
-    # # print("Shape of training labels: ")
-    # # print(trainingLabels.shape)
-    # print("Shape of testing images: ")
-    # print(testingImages.shape)
-
     w = 0.0001 * np.random.randn(trainingImages.shape[1], trainingLabels.shape[1]) # initialzie w to random numbers
     print("Shape of w: ")
     print(w.shape)
@@ -32,7 +25,6 @@ def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLab
             L2[-1, :] = 0
             grad = grad + L2
             w = w - (epsilon * grad)  # update w
-
          
     print("Shape of gradient")
     print(grad.shape)
@@ -50,7 +42,7 @@ def visualize_weights(w, title):
 
    
 if __name__ == "__main__":    
-    trainingImages, trainingLabels, testingImages, testingIDs = load_data()
+    trainingImages, trainingLabels, testingImages, testingIDs, Xtrainall = load_data()
     print(f"Very beginning train {trainingImages.shape}")
     print(f"Very beginning test {testingImages.shape}")
     # Append a constant 1 term to each example to correspond to the bias terms
@@ -61,6 +53,7 @@ if __name__ == "__main__":
     # Xtilde_train = np.delete(Xtilde_train, 519, axis=1) # deleting column 519
     Xtilde_train = Xtilde_train
     trainingLabels = trainingLabels
+
 
     testing_ones = np.ones((1,testingImages.shape[0]))
     Xtilde_test = np.vstack((testingImages.T, testing_ones)).T
@@ -76,13 +69,26 @@ if __name__ == "__main__":
     Wtilde = softmaxRegression(trainingImages, trainingLabels, testingImages, trainingLabels, epsilon=0.001, batchSize=64, alpha=.2)
 
     z = np.dot(testingImages, Wtilde)
+    z_train = np.dot(trainingImages, Wtilde)
+
     yhat = np.exp(z)
+    yhat_train = np.exp(z_train)
+
     yhat = yhat / (np.sum(yhat, axis = 1, keepdims=True))
     yhat_onehot = np.zeros_like(yhat)
     yhat_onehot[np.arange(len(yhat)), yhat.argmax(1)] = 1
-    print(yhat_onehot[0:20])
-    # print(all(yhat_onehot[:,0] == 1))
-disease = yhat_onehot.argmax(axis=1)
 
+    yhat_train = yhat_train / (np.sum(yhat_train, axis = 1, keepdims=True))
+    yhat_train_onehot = np.zeros_like(yhat_train)
+    yhat_train_onehot[np.arange(len(yhat_train)), yhat_train.argmax(1)] = 1
+
+    accuracy = np.sum(np.all(trainingLabels==yhat_train_onehot, axis = 1)) / len(trainingLabels)
+    print(accuracy)
+
+    # print(trainingLabels.shape)
+    # print(yhat_onehot[0:20])
+    # print(all(yhat_onehot[:,0] == 1))
+
+disease = yhat_onehot.argmax(axis=1)
 df = pd.DataFrame({'candidateID': testingIDs, 'disease': disease})
 df.to_csv('submission.csv', index = False) # write to csv file
