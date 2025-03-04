@@ -17,22 +17,21 @@ learning_rate = 0.0001
 batch_size = 32
 
 # Architecture
-num_features = 520
+num_features = 523
 num_classes = 3
 
 
-EPOCHS = 100
-X, y_train, X_test, testingIDs, X_train  = load_data() # loads data 
+EPOCHS = 80
+X_train, y_train, X_test, testingIDs  = load_data() # loads data 
 
 X_train = torch.tensor(X_train, dtype=torch.float32)
 y_train = torch.tensor(y_train, dtype=torch.long)
 y_train = torch.argmax(y_train, dim = 1) # reverts one_hot for labels
 X_test = torch.tensor(X_test, dtype=torch.float32)
 
-X_train = torch.cat((X_train[:, :519], X_train[:, 519+1:]), dim=1) # gets rid of nans
-X_test = torch.cat((X_test[:, :519], X_test[:, 519+1:]), dim=1) 
+X_train_features = X_train
+print(X_train_features)
 
-X_train_features = X_train[:, :-1]
 class CustomDataset(Dataset):
     def __init__(self, features, labels=None):  # Make labels optional
         self.features = features
