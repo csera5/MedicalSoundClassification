@@ -53,7 +53,7 @@ def show_PCA(X_train, Y_train):
 
     # Scatter plot of the first two principal components
     plt.figure(figsize=(8, 6))
-    plt.scatter(pc1, pc2, pc3, c=np.argmax(Y_train, axis=1), cmap='viridis', alpha=0.5)
+    plt.scatter(pc1, pc2, c=np.argmax(Y_train, axis=1), cmap='viridis', alpha=0.5)
     plt.colorbar(label="Class Labels")
     plt.xlabel("Principal Component 1")
     plt.ylabel("Principal Component 2")

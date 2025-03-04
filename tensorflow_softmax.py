@@ -18,19 +18,23 @@ Y_train = allTrainY[0:cutoff, :]
 X_val = allTrainX[cutoff+1:, :]
 Y_val = allTrainY[cutoff+1:, :]
 
+X_train = allTrainX
+Y_train = allTrainY
+X_val = X_test
+
 num_features = X_train.shape[1]
 num_labels = Y_train.shape[1]
-learning_rate = 0.05
-batch_size = 128
+learning_rate = 0.01
+batch_size = 32
 num_steps = 5001
 
 graph = tf.Graph() # initialize a tensorflow graph
 
 with graph.as_default():
 	# Inputs
-	tf_train_dataset = tf1.placeholder(tf.float32,
+	tf_train_dataset = tf.compat.v1.placeholder(tf.float32,
 									shape=(batch_size, num_features))
-	tf_train_labels = tf1.placeholder(tf.float32,
+	tf_train_labels = tf1.compat.v1.placeholder(tf.float32,
 									shape=(batch_size, num_labels))
 	tf_valid_dataset = tf.constant(X_val)
 
@@ -45,7 +49,7 @@ with graph.as_default():
 		labels=tf_train_labels, logits=logits))
 
 	# Optimizer.
-	optimizer = tf1.train.GradientDescentOptimizer(
+	optimizer = tf1.compat.v1.train.GradientDescentOptimizer(
 		learning_rate).minimize(loss)
 
 	# Predictions for the training, validation, and test data.
@@ -64,7 +68,7 @@ def accuracy(predictions, labels):
 with tf1.Session(graph=graph) as session:
 	# initialize weights and biases
 	tf1.global_variables_initializer().run()
-	print("Initialized")
+	# print("Initialized")
 
 	for step in range(num_steps):
 		# pick a randomized offset
@@ -86,8 +90,12 @@ with tf1.Session(graph=graph) as session:
 			print("Minibatch loss at step {0}: {1}".format(step, l))
 			print("Minibatch accuracy: {:.1f}%".format(
 				accuracy(predictions, batch_labels)))
-			print("Validation accuracy: {:.1f}%".format(
-				accuracy(valid_prediction.eval(), Y_val)))
+			# print("Validation accuracy: {:.1f}%".format(
+			# 	accuracy(valid_prediction.eval(), Y_val)))
+			valid_pred_values = session.run(valid_prediction)
 			
 feed_dict = {tf_train_dataset : batch_data, tf_train_labels : batch_labels}
+
+df = pd.DataFrame({'candidateID': testIDs, 'disease': valid_pred_values.argmax(axis=1)})
+df.to_csv('submission.csv', index = False) # write to csv file
 
