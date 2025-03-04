@@ -49,13 +49,15 @@ def show_PCA(X_train, Y_train):
     # Extract first two principal components
     pc1 = X_train_pca[:, 0]
     pc2 = X_train_pca[:, 1]
+    pc3 = X_train_pca[:, 3]
 
     # Scatter plot of the first two principal components
     plt.figure(figsize=(8, 6))
-    plt.scatter(pc1, pc2, c=np.argmax(Y_train, axis=1), cmap='viridis', alpha=0.5)
+    plt.scatter(pc1, pc2, pc3, c=np.argmax(Y_train, axis=1), cmap='viridis', alpha=0.5)
     plt.colorbar(label="Class Labels")
     plt.xlabel("Principal Component 1")
     plt.ylabel("Principal Component 2")
+    # plt.zlabel("Principal Component 3")
     plt.title("PCA Projection of Training Data")
     plt.show()
 
