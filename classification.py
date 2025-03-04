@@ -6,15 +6,23 @@ import json
 ENCODING = 512
 NUM_CLASSES = 3
 
-def load_data():
+def load_data(testing=False):
     trainingData = pandas.read_csv("train.csv")
     testingData = pandas.read_csv("test.csv")
-    Xtrain = trainingData.to_numpy()[:, :-1] # ignores labels in last column
-    Xtrainall = trainingData.to_numpy()[:,:]
-    Xtest = testingData.to_numpy()
-    XtestIDs = Xtest[:, 0]
-    Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T # grabs labels from last column
-    # Ytrain = Ytrain.reshape(Ytrain.shape[0], 1) # makes shape a 2d array, easier for later
+    if testing:
+        X = np.random.default_rng().permutation(trainingData.to_numpy(), axis=0)
+        cutoff = int(X.shape[0] * 0.8)
+        Xtrain = X[:cutoff, :-1]
+        Ytrain = np.atleast_2d(X[:cutoff, -1]).T
+        Xtest = X[cutoff:, :-1]
+        Ytest = np.atleast_2d(X[cutoff:, -1]).T
+        onehot_test_labels = np.zeros((Xtest.shape[0], NUM_CLASSES)) # 3 classes to predict
+        onehot_test_labels[np.arange(Xtest.shape[0]), Ytest[:, 0].astype(int)] = 1 # performs one hot encoding
+    else:
+        Xtrain = trainingData.to_numpy()[:, :-1] # ignores labels in last column
+        Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T # grabs labels from last column
+        Xtest = testingData.to_numpy()
+        XtestIDs = Xtest[:, 0]
 
     num_train = Xtrain.shape[0]
     num_test = Xtest.shape[0]
@@ -85,7 +93,6 @@ def load_data():
         # except:
         #     continue
 
-    print()
     candidateIds = Xtest[:, 0]
     Xtest = np.concatenate((Xtest[:, 1:8].astype(float), onehot_test_coldpresent, Xtest[:, 9].reshape(num_test, 1).astype(float)), axis=1, dtype=float)
     newXtest = np.zeros((0, ENCODING * 2 + 11))
@@ -134,7 +141,9 @@ def load_data():
     print(newXtest.shape)
     print(new_onehot_train_labels.shape)
 
-    return newXtrain, new_onehot_train_labels, newXtest, XtestIDs
-
-Xtrain, onehot_train_labels, Xtest, XtestIDs, Xtrainall = load_data()
-# print(Xtrainall.shape)
+    if testing:
+        return newXtrain, new_onehot_train_labels, newXtest, onehot_test_labels
+    else:
+        return newXtrain, new_onehot_train_labels, newXtest, XtestIDs
+    
+load_data(testing=False)
