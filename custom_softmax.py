@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import math
-from classification import load_data
+from classification_5 import load_data
 
 
 def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLabels, epsilon, batchSize, alpha):    
@@ -42,7 +41,7 @@ def visualize_weights(w, title):
 
    
 if __name__ == "__main__":
-    testing = False
+    testing = True
 
     Xtrain, Ytrain, Xtest, Ytest = load_data(testing=testing)
     print(f"Xtrain: {Xtrain.shape}")
