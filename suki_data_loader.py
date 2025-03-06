@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 
 NUM_CLASSES = 3
 ENCODING = 512
+
 def load_data():
     trainingData = pandas.read_csv("train.csv")
     testingData = pandas.read_csv("test.csv")
@@ -73,7 +74,7 @@ def load_data():
     newXtest_scaled = scaler.transform(newXtest)  # Standardizing test data
 
     # PCA
-    pca = PCA(n_components=2) 
+    pca = PCA(n_components=523) 
     Xtrain_pca = pca.fit_transform(newXtrain_scaled[:,])  # Fit and transform training data
     Xtest_pca = pca.transform(newXtest_scaled)  # Use learned components for new dataset
     # Plot
@@ -88,11 +89,7 @@ def load_data():
     plt.ylabel("Principal Component 2")
     plt.legend(title="Class", bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.grid(True)
-
     plt.show()
-
-    print("PCA Applied and Visualization Done")
-
     return Xtrain_pca, new_onehot_train_labels, Xtest_pca, XtestIDs
 
 # see pretty photo
