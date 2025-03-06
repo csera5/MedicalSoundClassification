@@ -146,5 +146,5 @@ def load_data(testing=False):
         return newXtrain, new_onehot_train_labels, newXtest, onehot_test_labels
     else:
         return newXtrain, new_onehot_train_labels, newXtest, XtestIDs
-    
+
 load_data(testing=False)
