@@ -18,7 +18,7 @@ X_train = torch.nan_to_num(X_train)
 X_test = torch.nan_to_num(X_test)
 
 batch_size = 32 #24, 16
-epochs = 50 #50, 45
+epochs = 50 #50, 60, 45
 train_dataset = TensorDataset(X_train, Y_train)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 

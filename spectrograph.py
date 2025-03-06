@@ -5,16 +5,17 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-ENCODING = 128  
-NUM_CLASSES = 3
-N_MELS = 128  
-HOP_LENGTH = 512  
+ENCODING = 128  #features in melspec
+NUM_CLASSES = 3 
+N_MELS = 128  #mel bands in spectro
+HOP_LENGTH = 512  #samples between frames 
 
+#makes .wav file into melspec
 def extract_mel_spectrogram(wav_path, n_mels=N_MELS, hop_length=HOP_LENGTH, visualize=False):
     try:
         y, sr = librosa.load(wav_path, sr=None) 
         mel_spec = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=n_mels, hop_length=hop_length)
-        mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)  
+        mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)  #decibals 
 
         if visualize:
             plt.figure(figsize=(10, 4))
@@ -33,16 +34,16 @@ def load_sound_data(visualize_samples=3):
     trainingData = pd.read_csv("train.csv")
     testingData = pd.read_csv("test.csv")
 
-    Xtrain = trainingData.to_numpy()[:, :-1]  # Ignores labels in last column
+    Xtrain = trainingData.to_numpy()[:, :-1]  
     Xtest = testingData.to_numpy()
     XtestIDs = Xtest[:, 0]
-    Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T  # Labels
+    Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T  
     Ytrain = Ytrain.reshape(Ytrain.shape[0], 1)
 
     num_train = Xtrain.shape[0]
     num_test = Xtest.shape[0]
     onehot_train_labels = np.zeros((num_train, NUM_CLASSES))
-    onehot_train_labels[np.arange(num_train), Ytrain[:, 0].astype(int)] = 1  # One-hot encoding
+    onehot_train_labels[np.arange(num_train), Ytrain[:, 0].astype(int)] = 1  #one hot
 
     candidateIds = Xtrain[:, 0]
     Xtrain = Xtrain[:, 1:].astype(float)
@@ -53,6 +54,7 @@ def load_sound_data(visualize_samples=3):
     sample_count = 0  
 
     print("Processing training data...")
+    #get all sounds for each training sample
     for i in range(num_train):
         candidate_id = candidateIds[i]
         wav_path = f"sounds/sounds/{candidate_id}/cough.wav"
@@ -61,7 +63,7 @@ def load_sound_data(visualize_samples=3):
             if mel_spec is not None:
                 newXtrain.append(np.concatenate((mel_spec, Xtrain[i])))
                 new_onehot_train_labels.append(onehot_train_labels[i])
-                sample_count += 1
+                sample_count += 1 #using to make visualization code 
 
     newXtest = []
     print("Processing testing data...")
@@ -75,6 +77,7 @@ def load_sound_data(visualize_samples=3):
                 newXtest.append(np.concatenate((mel_spec, Xtest[i])))
                 sample_count += 1
 
+    #melspec data as array 
     newXtrain = np.array(newXtrain)
     new_onehot_train_labels = np.array(new_onehot_train_labels)
     newXtest = np.array(newXtest)

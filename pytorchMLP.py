@@ -3,15 +3,16 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
 from classification import load_data
+import pandas as pd
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 random_seed = 123
 learning_rate = 0.0001
-batch_size = 32
-num_features = 523
+batch_size = 24
+num_features = 1035
 num_classes = 3
-EPOCHS = 80 #80 or 100?
+EPOCHS = 40 #80
 
 X_train, y_train, X_test, testingIDs = load_data()  # loads data
 
@@ -109,6 +110,7 @@ model.eval()
 correct = 0
 total = 0
 
+predictions = [] #saving predictions 
 with torch.no_grad():
     for inputs, labels in test_loader:
         inputs, labels = inputs.to(device), labels.to(device)
@@ -116,4 +118,8 @@ with torch.no_grad():
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
+        predictions.extend(predicted.cpu().numpy())
 
+df = pd.DataFrame({'candidateID': testingIDs, 'disease': predictions})
+df.to_csv('submissionMLP.csv', index=False)
+print("Predictions saved to submission.csv")
