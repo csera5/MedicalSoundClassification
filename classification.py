@@ -136,5 +136,5 @@ def load_data():
 
     return newXtrain, new_onehot_train_labels, newXtest, XtestIDs
 
-Xtrain, onehot_train_labels, Xtest, XtestIDs, Xtrainall = load_data()
+# Xtrain, onehot_train_labels, Xtest, XtestIDs, Xtrainall = load_data()
 # print(Xtrainall.shape)
