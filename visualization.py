@@ -6,7 +6,9 @@ from ellys_data_loader_2 import load_data
 from ordinal_data import load_ordinal_data
 from continuous_data import load_continuous_data
 from continuous_not_audio_data import load_continuous_no_audio_data
+from spectrograph import load_sound_data
 import seaborn as sns
+import pandas as pd
 
 def show_continuous_2D_PCA(X_train, Y_train):
 
@@ -98,7 +100,27 @@ def show_ordinal_PCA(X_train, Y_train):
 # allTrainX, allTrainY = load_continuous_data()
 # show_continuous_PCA(allTrainX, allTrainY)
 
-allTrainX, allTrainY = load_continuous_no_audio_data()
-print("output:", allTrainX.shape, allTrainY.shape)
-print(allTrainX)
-show_continuous_2D_PCA(allTrainX, allTrainY)
+# allTrainX, allTrainY = load_continuous_no_audio_data()
+# show_continuous_2D_PCA(allTrainX, allTrainY)
+
+# allTrainX, allTrainY, _, _ = load_sound_data()
+allTrainX = pd.read_csv("test.csv").to_numpy().reshape(546, 137)
+allTrainY = pd.read_csv("test.csv").to_numpy().reshape(546, 3)
+print(allTrainX.shape, allTrainY.shape)
+
+# df = pd.DataFrame({
+#     'allTrainX': allTrainX.reshape(-1),
+# })
+# df.to_csv('spectrograph-X.csv', index=False)
+# print("Spectrogram X Data saved to spectrograph-X.csv")
+
+# df = pd.DataFrame({
+#     'allTrainY': allTrainY.reshape(-1),
+# })
+# df.to_csv('spectrograph-Y.csv', index=False)
+# print("Spectrogram Y Data saved to spectrograph-Y.csv")
+
+allTrainX = np.nan_to_num(allTrainX)
+allTrainY = np.nan_to_num(allTrainY)
+
+show_continuous_PCA(allTrainX, allTrainY)
