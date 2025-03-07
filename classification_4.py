@@ -42,28 +42,33 @@ def load_data(testing=False):
     onehot_test_coldpresent[Xtest[:, 8] == 1, 1] = 1
     onehot_test_coldpresent[np.isnan(Xtest[:, 8].astype(float)), 2] = 1
 
-    start(Xtrain, Xtest)
+    trainIds = Xtrain[:, 0]
+    testIds = Xtest[:, 0]
+    Xtrain = np.concatenate((Xtrain[:, 1:8].astype(float), onehot_train_coldpresent, np.atleast_2d(Xtrain[:, 9]).T.astype(float)), axis=1)
+    Xtest = np.concatenate((Xtest[:, 1:8].astype(float), onehot_test_coldpresent, np.atleast_2d(Xtest[:, 9]).T.astype(float)), axis=1)
+
+    start(Xtrain, trainIds, Xtest, testIds)
     print()
 
     newXtrain = np.zeros((0, ENCODING * 2 + 11))
     new_onehot_train_labels = np.zeros((0, 3))
     for i in range(Xtrain.shape[0]):
         try:
-            vowel = np.load(f"sounds/sounds/{Xtrain[i, 0]}/vowel-opera.npy")
+            vowel = np.load(f"sounds/sounds/{trainIds[i]}/vowel-opera.npy")
         except FileNotFoundError:
-            vowel = np.load(f"newSounds/{Xtrain[i, 0]}/vowel-opera.npy")
-        cough = np.load(f"sounds/sounds/{Xtrain[i, 0]}/cough-opera.npy")
-        newXtrain = np.append(newXtrain, np.concatenate((cough, np.atleast_2d(vowel), np.atleast_2d(Xtrain[i, 1:8]).astype(float), np.atleast_2d(onehot_train_coldpresent[i]), np.atleast_2d(Xtrain[i, 9]).astype(float)), axis=1), axis=0)
+            vowel = np.load(f"newSounds/{trainIds[i]}/vowel-opera.npy")
+        cough = np.load(f"sounds/sounds/{trainIds[i]}/cough-opera.npy")
+        newXtrain = np.append(newXtrain, np.concatenate((cough, np.atleast_2d(vowel), np.atleast_2d(Xtrain[i])), axis=1), axis=0)
         new_onehot_train_labels = np.append(new_onehot_train_labels, np.atleast_2d(onehot_train_labels[i]), axis=0)
 
     newXtest = np.zeros((0, ENCODING * 2 + 11))
     for i in range(Xtest.shape[0]):
         try:
-            vowel = np.load(f"sounds/sounds/{Xtest[i, 0]}/vowel-opera.npy")
+            vowel = np.load(f"sounds/sounds/{testIds[i]}/vowel-opera.npy")
         except FileNotFoundError:
-            vowel = np.load(f"newSounds/{Xtest[i, 0]}/vowel-opera.npy")
-        cough = np.load(f"sounds/sounds/{Xtest[i, 0]}/cough-opera.npy")
-        newXtest = np.concatenate((newXtest, np.concatenate((cough, np.atleast_2d(vowel), np.atleast_2d(Xtest[i, 1:8]).astype(float), np.atleast_2d(onehot_test_coldpresent[i]), np.atleast_2d(Xtest[i, 9]).astype(float)), axis=1)), axis=0, dtype=float)
+            vowel = np.load(f"newSounds/{testIds[i]}/vowel-opera.npy")
+        cough = np.load(f"sounds/sounds/{testIds[i]}/cough-opera.npy")
+        newXtest = np.concatenate((newXtest, np.concatenate((cough, np.atleast_2d(vowel), np.atleast_2d(Xtest[i])), axis=1)), axis=0, dtype=float)
 
     cough_noise = np.random.default_rng().normal(0, 1e-1, (newXtrain.shape[0], ENCODING))
     vowel_noise = np.random.default_rng().normal(0, 1e-2, (newXtrain.shape[0], ENCODING))
