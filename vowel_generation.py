@@ -6,12 +6,9 @@ import os
 ENCODING = 512
 NUM_CLASSES = 3
 
-def load_vowel_data(type="npy"):
-    trainingData = pandas.read_csv("train.csv")
-    testingData = pandas.read_csv("test.csv")
-
+def load_vowel_data(trainingData, trainIds, testingData, testIds, type="npy"):
     # grab the training data from CSV
-    allX = np.append(trainingData.to_numpy()[:, :-1], testingData.to_numpy(), axis=0) # ignores labels in last column
+    allX = np.append(trainingData, testingData, axis=0) # ignores labels in last column
     total_count = allX.shape[0]
 
     # grab the XtrainOutput from the CSV and convert to onehot
@@ -24,7 +21,7 @@ def load_vowel_data(type="npy"):
     # allX = np.hstack((allX, onehot_train_labels))
 
     coughs = np.zeros((total_count, ENCODING))
-    candidateIds = allX[:, 0]
+    candidateIds = np.append(trainIds, testIds, axis=0)
     for i in range(total_count):
         coughs[i] = np.load(f"sounds/sounds/{candidateIds[i]}/cough-opera.npy") # loads cough data for each participant
 
@@ -56,16 +53,6 @@ def load_vowel_data(type="npy"):
     Xtrain = allX[trainIndices]
     Ytrain = vowels[trainIndices]
 
-    onehot_train_coldpresent = np.zeros((Xtrain.shape[0], 3))
-    onehot_train_coldpresent[Xtrain[:, 8] == 0, 0] = 1
-    onehot_train_coldpresent[Xtrain[:, 8] == 1, 1] = 1
-    onehot_train_coldpresent[np.isnan(Xtrain[:, 8].astype(float)), 2] = 1
-    onehot_test_coldpresent = np.zeros((Xtest.shape[0], 3))
-    onehot_test_coldpresent[Xtest[:, 8] == 0, 0] = 1
-    onehot_test_coldpresent[Xtest[:, 8] == 1, 1] = 1
-    onehot_test_coldpresent[np.isnan(Xtest[:, 8].astype(float)), 2] = 1
-
-    Xtrain = np.concatenate((Xtrain[:, 1:8].astype(float), onehot_train_coldpresent, Xtrain[:, 9:].astype(float)), axis=1) # adds coughs to Xtrain array, remove candidateIDs
     newXtrain = np.zeros((0, ENCODING + 11))
     newYtrain = np.zeros((0, ENCODING))
     for i in range(Xtrain.shape[0]):
@@ -82,11 +69,12 @@ def load_vowel_data(type="npy"):
         newXtrain = np.concatenate((newXtrain, np.concatenate((coughs, np.tile(Xtrain[i], (coughs.shape[0], 1))), axis=1)), axis=0)
         newYtrain = np.append(newYtrain, np.tile(Ytrain[i], (coughs.shape[0], 1)), axis=0)
 
-    Xtest = np.concatenate((test_coughs, Xtest[:, 1:8].astype(float), onehot_test_coldpresent, Xtest[:, 9:].astype(float)), axis=1) # adds coughs to Xtest array, remove candidateIDs
+    Xtest = np.concatenate((test_coughs, Xtest), axis=1) # adds coughs to Xtest array, remove candidateIDs
 
-    cough_noise = np.random.default_rng().normal(0, 1e-2, (newXtrain.shape[0], ENCODING))
+    cough_noise = np.random.default_rng().normal(0, 1e-1, (newXtrain.shape[0], ENCODING))
     age_noise = np.random.default_rng().normal(0, 1, (newXtrain.shape[0], 1))
-    newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING].reshape((newXtrain.shape[0], 1)) + age_noise, newXtrain[:, ENCODING + 1:]), axis=1)))
+    packYears_noise = np.random.default_rng().normal(0, 5, (newXtrain.shape[0], 1))
+    newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING].reshape((newXtrain.shape[0], 1)) + age_noise, newXtrain[:, ENCODING + 1:-1], np.atleast_2d(newXtrain[:, -1]).T + packYears_noise), axis=1)))
     newYtrain = np.tile(newYtrain, (2, 1))
 
     return newXtrain, newYtrain, Xtest, candidateIds[testIndices]
@@ -176,11 +164,14 @@ def generate_vowels(X, W1, b1, W2, b2):
     yhat = np.dot(W2, h) + b2.reshape(-1, 1)  # 1xbatchSize
     return yhat.T
 
-if __name__ == "__main__":   
-
+def start(trainingData, trainIds, testingData, testIds):
     file_type = "json"
 
-    Xtrain, Ytrain, actualTest, newIds = load_vowel_data(type=file_type)
+    Xtrain, Ytrain, actualTest, newIds = load_vowel_data(trainingData, trainIds, testingData, testIds, type=file_type)
+
+    print(Xtrain.shape)
+    print(Ytrain.shape)
+    print(actualTest.shape)
 
     if file_type == "npy":
         W1, b1, W2, b2 = vowelNN(Xtrain.T, Ytrain.T, epsilon=0.00001, batchSize=16, numEpochs=200, numHidden=20)

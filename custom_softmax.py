@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import math
-from classification import load_data
+from classification_5 import load_data
 
 
 def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLabels, epsilon, batchSize, alpha):    
@@ -41,35 +40,29 @@ def visualize_weights(w, title):
 
 
    
-if __name__ == "__main__":    
-    trainingImages, trainingLabels, testingImages, testingIDs, Xtrainall = load_data()
-    print(f"Very beginning train {trainingImages.shape}")
-    print(f"Very beginning test {testingImages.shape}")
+if __name__ == "__main__":
+    testing = True
+
+    Xtrain, Ytrain, Xtest, Ytest = load_data(testing=testing)
+    print(f"Xtrain: {Xtrain.shape}")
+    print(f"Xtest: {Xtest.shape}")
+
     # Append a constant 1 term to each example to correspond to the bias terms
-    training_ones = np.ones((1,trainingImages.shape[0]))
+    training_ones = np.ones((1, Xtrain.shape[0]))
+    Xtilde_train = np.vstack((Xtrain.T, training_ones)).T
+    testing_ones = np.ones((1, Xtest.shape[0]))
+    Xtilde_test = np.vstack((Xtest.T, testing_ones)).T
 
-    Xtilde_train = np.vstack((trainingImages.T, training_ones)).T
-    print(f"Shape of training images before deleting: {Xtilde_train.shape}")
-    # Xtilde_train = np.delete(Xtilde_train, 519, axis=1) # deleting column 519
-    Xtilde_train = Xtilde_train
-    trainingLabels = trainingLabels
-
-
-    testing_ones = np.ones((1,testingImages.shape[0]))
-    Xtilde_test = np.vstack((testingImages.T, testing_ones)).T
-    print(f"Shape of testing images before deleting: {Xtilde_test.shape}")
-    # Xtilde_test = np.delete(Xtilde_test, 519, axis=1)# deleted column 519 
-
-    trainingImages = Xtilde_train
-    testingImages = Xtilde_test
-    print(f"Training images shape:{trainingImages.shape}")
-    print(f"Testing images shape:{testingImages.shape}")
+    Xtrain = Xtilde_train
+    Xtest = Xtilde_test
+    print(f"Training images shape: {Xtrain.shape}")
+    print(f"Testing images shape: {Xtest.shape}")
 
     # Train the model
-    Wtilde = softmaxRegression(trainingImages, trainingLabels, testingImages, trainingLabels, epsilon=0.001, batchSize=64, alpha=.2)
+    Wtilde = softmaxRegression(Xtrain, Ytrain, Xtest, Ytrain, epsilon=0.001, batchSize=64, alpha=.2)
 
-    z = np.dot(testingImages, Wtilde)
-    z_train = np.dot(trainingImages, Wtilde)
+    z = np.dot(Xtest, Wtilde)
+    z_train = np.dot(Xtrain, Wtilde)
 
     yhat = np.exp(z)
     yhat_train = np.exp(z_train)
@@ -82,13 +75,18 @@ if __name__ == "__main__":
     yhat_train_onehot = np.zeros_like(yhat_train)
     yhat_train_onehot[np.arange(len(yhat_train)), yhat_train.argmax(1)] = 1
 
-    accuracy = np.sum(np.all(trainingLabels==yhat_train_onehot, axis = 1)) / len(trainingLabels)
-    print(accuracy)
+    accuracy = np.sum(np.all(Ytrain == yhat_train_onehot, axis = 1)) / len(Ytrain)
+    print(f"Training: {accuracy}")
 
-    # print(trainingLabels.shape)
-    # print(yhat_onehot[0:20])
-    # print(all(yhat_onehot[:,0] == 1))
-
-disease = yhat_onehot.argmax(axis=1)
-df = pd.DataFrame({'candidateID': testingIDs, 'disease': disease})
-df.to_csv('submission.csv', index = False) # write to csv file
+    if testing:
+        accuracy = np.sum(np.all(Ytest == yhat_onehot, axis = 1)) / len(Ytest)
+        print(f"Testing: {accuracy}")
+        
+        yhat_baseline = np.zeros_like(Ytest)
+        yhat_baseline[:, Ytest.sum(axis=0).argmax(axis=0)] = 1
+        accuracy = np.sum(np.all(Ytest == yhat_baseline, axis=1)) / len(Ytest)
+        print(f"Baseline: {accuracy}")
+    else:
+        disease = yhat_onehot.argmax(axis=1)
+        df = pd.DataFrame({'candidateID': Ytest, 'disease': disease})
+        df.to_csv('submission.csv', index = False) # write to csv file

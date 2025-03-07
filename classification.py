@@ -6,15 +6,23 @@ import json
 ENCODING = 512
 NUM_CLASSES = 3
 
-def load_data():
+def load_data(testing=False):
     trainingData = pandas.read_csv("train.csv")
     testingData = pandas.read_csv("test.csv")
-    Xtrain = trainingData.to_numpy()[:, :-1] # ignores labels in last column
-    Xtrainall = trainingData.to_numpy()[:,:]
-    Xtest = testingData.to_numpy()
-    XtestIDs = Xtest[:, 0]
-    Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T # grabs labels from last column
-    # Ytrain = Ytrain.reshape(Ytrain.shape[0], 1) # makes shape a 2d array, easier for later
+    if testing:
+        X = np.random.default_rng().permutation(trainingData.to_numpy(), axis=0)
+        cutoff = int(X.shape[0] * 0.8)
+        Xtrain = X[:cutoff, :-1]
+        Ytrain = np.atleast_2d(X[:cutoff, -1]).T
+        Xtest = X[cutoff:, :-1]
+        Ytest = np.atleast_2d(X[cutoff:, -1]).T
+        onehot_test_labels = np.zeros((Xtest.shape[0], NUM_CLASSES)) # 3 classes to predict
+        onehot_test_labels[np.arange(Xtest.shape[0]), Ytest[:, 0].astype(int)] = 1 # performs one hot encoding
+    else:
+        Xtrain = trainingData.to_numpy()[:, :-1] # ignores labels in last column
+        Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T # grabs labels from last column
+        Xtest = testingData.to_numpy()
+        XtestIDs = Xtest[:, 0]
 
     num_train = Xtrain.shape[0]
     num_test = Xtest.shape[0]
@@ -85,7 +93,6 @@ def load_data():
         # except:
         #     continue
 
-    print()
     candidateIds = Xtest[:, 0]
     Xtest = np.concatenate((Xtest[:, 1:8].astype(float), onehot_test_coldpresent, Xtest[:, 9].reshape(num_test, 1).astype(float)), axis=1, dtype=float)
     newXtest = np.zeros((0, ENCODING * 2 + 11))
@@ -125,8 +132,9 @@ def load_data():
     cough_noise = np.random.default_rng().normal(0, 1e-1, (newXtrain.shape[0], ENCODING))
     vowel_noise = np.random.default_rng().normal(0, 1e-1, (newXtrain.shape[0], ENCODING))
     age_noise = np.random.default_rng().normal(0, 1, (newXtrain.shape[0], 1))
+    packYears_noise = np.random.default_rng().normal(0, 10, (newXtrain.shape[0], 1))
     # Xtrain = np.vstack((Xtrain, np.concatenate((Xtrain[:, :ENCODING] + cough_noise, Xtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(Xtrain[:, ENCODING * 2] + age_noise).T, Xtrain[:, (ENCODING * 2) + 1:]), axis=1)))
-    newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(newXtrain[:, ENCODING * 2]).T + age_noise, newXtrain[:, ENCODING * 2 + 1:]), axis=1)))
+    newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(newXtrain[:, ENCODING * 2]).T + age_noise, newXtrain[:, ENCODING * 2 + 1:-1], np.atleast_2d(newXtrain[:, -1]).T + packYears_noise), axis=1)))
 
     new_onehot_train_labels = np.tile(new_onehot_train_labels, (2, 1))
     print()
@@ -134,7 +142,9 @@ def load_data():
     print(newXtest.shape)
     print(new_onehot_train_labels.shape)
 
-    return newXtrain, new_onehot_train_labels, newXtest, XtestIDs
+    if testing:
+        return newXtrain, new_onehot_train_labels, newXtest, onehot_test_labels
+    else:
+        return newXtrain, new_onehot_train_labels, newXtest, XtestIDs
 
-# Xtrain, onehot_train_labels, Xtest, XtestIDs, Xtrainall = load_data()
-# print(Xtrainall.shape)
+load_data(testing=False)
