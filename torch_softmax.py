@@ -3,7 +3,7 @@ from torchvision import transforms
 from torch.utils.data import DataLoader, Dataset
 import torch.nn.functional as F
 import torch
-from ellys_data_loader_2 import load_data
+from classification_5 import load_data
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.model_selection import KFold
@@ -22,13 +22,17 @@ learning_rate = 0.001
 batch_size = 64
 
 # Architecture
-num_features = 523
+num_features = 1035
 num_classes = 3
 
+TESTING = True
 EPOCHS = 100
 K = 5  # Number of folds for cross-validation
 
-X_train, y_train, X_test, testingIDs = load_data()  # loads data
+if TESTING:
+    X_train, y_train, X_test, Y_test = load_data(testing=TESTING)  # loads data
+else:
+    X_train, y_train, X_test, testingIDs = load_data(testing=TESTING)  # loads data
 
 X_train = torch.tensor(X_train, dtype=torch.float32)
 y_train = torch.tensor(y_train, dtype=torch.long)
@@ -182,11 +186,22 @@ for features, targets in test_loader:
 
     predictions.extend(predicted_labels.cpu().numpy())
 
-# Save predictions to a CSV file
-df = pd.DataFrame({
-    'candidateID': testingIDs,
-    'disease': predictions
-})
+if TESTING:
+    print(Y_test.argmax(axis=1).shape)
+    print(np.array(predictions).shape)
+    accuracy = np.sum(Y_test.argmax(axis=1) == np.array(predictions)) / len(Y_test)
+    print(f"Testing: {accuracy}")
 
-df.to_csv('submissions.csv', index=False)
-print("Predictions saved to submissions.csv")
+    yhat_baseline = np.zeros_like(Y_test)
+    yhat_baseline[:, Y_test.sum(axis=0).argmax(axis=0)] = 1
+    accuracy = np.sum(np.all(Y_test == yhat_baseline, axis=1)) / len(Y_test)
+    print(f"Baseline: {accuracy}")
+else:
+    # Save predictions to a CSV file
+    df = pd.DataFrame({
+        'candidateID': testingIDs,
+        'disease': predictions
+    })
+
+    df.to_csv('submissions.csv', index=False)
+    print("Predictions saved to submissions.csv")
