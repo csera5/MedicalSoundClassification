@@ -96,7 +96,7 @@ allTrainX, allTrainY, _, _ = load_data()
 allTrainX, allTrainY = load_ordinal_data()
 show_ordinal_PCA(allTrainX, allTrainY)
 
-allTrainX, allTrainY = load_continuous_data()
+allTrainX, allTrainY, _, _ = load_continuous_data()
 show_continuous_PCA(allTrainX, allTrainY)
 
 allTrainX, allTrainY = load_continuous_no_audio_data()
@@ -119,7 +119,7 @@ print(allTrainX.shape, allTrainY.shape)
 # df.to_csv('spectrograph-Y.csv', index=False)
 # print("Spectrogram Y Data saved to spectrograph-Y.csv")
 
-# allTrainX = np.nan_to_num(allTrainX)
-# allTrainY = np.nan_to_num(allTrainY)
+allTrainX = np.nan_to_num(allTrainX)
+allTrainY = np.nan_to_num(allTrainY)
 
 show_continuous_PCA(allTrainX, allTrainY, title="PCA Projection of Spectrograph Training Data")

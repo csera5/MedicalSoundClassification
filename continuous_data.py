@@ -6,7 +6,7 @@ from vowel_generation import start
 ENCODING = 512
 NUM_CLASSES = 3
 
-def load_data(testing=False):
+def load_continuous_data(testing=False):
     if testing:
         trainingData = pandas.read_csv("newTrain.csv").to_numpy()
         testingData = pandas.read_csv("newTest.csv").to_numpy()
@@ -92,7 +92,11 @@ def load_data(testing=False):
     age_noise = np.random.default_rng().normal(0, 1, (newXtrain.shape[0], 1))
     packYears_noise = np.random.default_rng().normal(0, 5, (newXtrain.shape[0], 1))
 
-    newXtrain = np.concatenate((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(newXtrain[:, ENCODING * 2]).T + age_noise, newXtrain[:, ENCODING * 2 + 1:-1], np.atleast_2d(newXtrain[:, -1]).T + packYears_noise), axis=1)), axis=0)
+    newXtrain = np.concatenate((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, 
+                                                           newXtrain[:, ENCODING:ENCODING * 2] + vowel_noise, 
+                                                           np.atleast_2d(newXtrain[:, ENCODING * 2]).T + age_noise, 
+                                                           newXtrain[:, ENCODING * 2 + 1:-1], 
+                                                           np.atleast_2d(newXtrain[:, -1]).T + packYears_noise), axis=1)), axis=0)
     new_onehot_train_labels = np.tile(new_onehot_train_labels, (2, 1))
 
     print(newXtrain.shape)
@@ -108,5 +112,5 @@ def load_data(testing=False):
     else:
         return newXtrain, new_onehot_train_labels, newXtest, testIds
     
-if __name__ == "__main__":
-    load_data(testing=False)
+# if __name__ == "__main__":
+#     load_continuous_data(testing=False)
