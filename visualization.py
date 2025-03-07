@@ -2,11 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder
-# from classification_5 import load_data
-from ordinal_data import load_ordinal_data
-from continuous_data import load_continuous_data
-from continuous_not_audio_data import load_continuous_no_audio_data
-# from spectrograph import load_sound_data
 import seaborn as sns
 import pandas as pd
 from vowel_generation import start
