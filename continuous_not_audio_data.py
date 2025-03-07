@@ -7,7 +7,7 @@ ENCODING = 512
 NUM_CLASSES = 3
 
 def load_continuous_no_audio_data():
-    trainingData = pandas.read_csv("train.csv")
+    trainingData = pandas.read_csv("newTrain.csv")
 
     Xtrain = trainingData.to_numpy()[:, :-1] # ignores labels in last column
     Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T # grabs labels from last column

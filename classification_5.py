@@ -111,4 +111,4 @@ def load_data(testing=False):
         return newXtrain, new_onehot_train_labels, newXtest, testIds
     
 if __name__ == "__main__":
-    load_data(testing=True)
+    load_data(testing=False)

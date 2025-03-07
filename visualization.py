@@ -4,9 +4,9 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder
 from ellys_data_loader_2 import load_data
 from ordinal_data import load_ordinal_data
-from continuous_data import load_continuous_data
+from continuous_data import load_data
 from continuous_not_audio_data import load_continuous_no_audio_data
-from spectrograph import load_sound_data
+# from spectrograph import load_sound_data
 import seaborn as sns
 import pandas as pd
 
@@ -61,7 +61,7 @@ def show_continuous_PCA(X_train, Y_train):
     ax.set_xlabel("Principal Component 1")
     ax.set_ylabel("Principal Component 2")
     ax.set_zlabel("Principal Component 3")
-    ax.set_title("PCA Projection of Ordinal Training Data")
+    ax.set_title("PCA Projection of Continuous Training Data")
     plt.show()
 
 def show_ordinal_PCA(X_train, Y_train):
@@ -88,7 +88,7 @@ def show_ordinal_PCA(X_train, Y_train):
     ax.set_xlabel("Principal Component 1")
     ax.set_ylabel("Principal Component 2")
     ax.set_zlabel("Principal Component 3")
-    ax.set_title("PCA Projection of Continuous Training Data")
+    ax.set_title("PCA Projection of Ordinal Training Data")
     plt.show()
 
 # allTrainX, allTrainY, _, _ = load_data()
@@ -97,16 +97,16 @@ def show_ordinal_PCA(X_train, Y_train):
 # allTrainX, allTrainY = load_ordinal_data()
 # show_ordinal_PCA(allTrainX, allTrainY)
 
-# allTrainX, allTrainY = load_continuous_data()
-# show_continuous_PCA(allTrainX, allTrainY)
+allTrainX, allTrainY = load_data()
+show_continuous_PCA(allTrainX, allTrainY)
 
 # allTrainX, allTrainY = load_continuous_no_audio_data()
 # show_continuous_2D_PCA(allTrainX, allTrainY)
 
 # allTrainX, allTrainY, _, _ = load_sound_data()
-allTrainX = pd.read_csv("test.csv").to_numpy().reshape(546, 137)
-allTrainY = pd.read_csv("test.csv").to_numpy().reshape(546, 3)
-print(allTrainX.shape, allTrainY.shape)
+# allTrainX = pd.read_csv("test.csv").to_numpy().reshape(546, 137)
+# allTrainY = pd.read_csv("test.csv").to_numpy().reshape(546, 3)
+# print(allTrainX.shape, allTrainY.shape)
 
 # df = pd.DataFrame({
 #     'allTrainX': allTrainX.reshape(-1),
@@ -120,7 +120,7 @@ print(allTrainX.shape, allTrainY.shape)
 # df.to_csv('spectrograph-Y.csv', index=False)
 # print("Spectrogram Y Data saved to spectrograph-Y.csv")
 
-allTrainX = np.nan_to_num(allTrainX)
-allTrainY = np.nan_to_num(allTrainY)
+# allTrainX = np.nan_to_num(allTrainX)
+# allTrainY = np.nan_to_num(allTrainY)
 
-show_continuous_PCA(allTrainX, allTrainY)
+# show_continuous_PCA(allTrainX, allTrainY)

@@ -53,7 +53,7 @@ def load_vowel_data(trainingData, trainIds, testingData, testIds, type="npy"):
     Xtrain = allX[trainIndices]
     Ytrain = vowels[trainIndices]
 
-    newXtrain = np.zeros((0, ENCODING + 11))
+    newXtrain = np.zeros((0, ENCODING + 3))
     newYtrain = np.zeros((0, ENCODING))
     for i in range(Xtrain.shape[0]):
         coughs = np.zeros((0, ENCODING))
@@ -74,6 +74,8 @@ def load_vowel_data(trainingData, trainIds, testingData, testIds, type="npy"):
     cough_noise = np.random.default_rng().normal(0, 1e-1, (newXtrain.shape[0], ENCODING))
     age_noise = np.random.default_rng().normal(0, 1, (newXtrain.shape[0], 1))
     packYears_noise = np.random.default_rng().normal(0, 5, (newXtrain.shape[0], 1))
+    newXtrain = newXtrain[:,1:]
+    newXtrain = newXtrain.astype(np.float32)  # Converts to numeric type (float32)
     newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING].reshape((newXtrain.shape[0], 1)) + age_noise, newXtrain[:, ENCODING + 1:-1], np.atleast_2d(newXtrain[:, -1]).T + packYears_noise), axis=1)))
     newYtrain = np.tile(newYtrain, (2, 1))
 
