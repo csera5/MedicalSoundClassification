@@ -3,27 +3,26 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
 from classification import load_data
+import pandas as pd
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 random_seed = 123
 learning_rate = 0.0001
-batch_size = 32
-num_features = 520
+batch_size = 24
+num_features = 1035
 num_classes = 3
-EPOCHS = 100
+EPOCHS = 40 #80
 
-X, y_train, X_test, testingIDs, X_train = load_data()  # loads data
+X_train, y_train, X_test, testingIDs = load_data()  # loads data
 
 X_train = torch.tensor(X_train, dtype=torch.float32)
 y_train = torch.tensor(y_train, dtype=torch.float32)
 y_train = torch.argmax(y_train, dim = 1) # reverts one_hot for labels
 X_test = torch.tensor(X_test, dtype=torch.float32)
 
-X_train = torch.cat((X_train[:, :519], X_train[:, 519+1:]), dim=1) # gets rid of nans
-X_test = torch.cat((X_test[:, :519], X_test[:, 519+1:]), dim=1) 
 
-X_train_features = X_train[:, :-1]
+X_train_features = X_train
 
 class CustomDataset(Dataset):
     def __init__(self, features, labels=None):  
@@ -111,6 +110,7 @@ model.eval()
 correct = 0
 total = 0
 
+predictions = [] #saving predictions 
 with torch.no_grad():
     for inputs, labels in test_loader:
         inputs, labels = inputs.to(device), labels.to(device)
@@ -118,4 +118,8 @@ with torch.no_grad():
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
+        predictions.extend(predicted.cpu().numpy())
 
+df = pd.DataFrame({'candidateID': testingIDs, 'disease': predictions})
+df.to_csv('submissionMLP.csv', index=False)
+print("Predictions saved to submission.csv")

@@ -147,4 +147,5 @@ def load_data(testing=False):
     else:
         return newXtrain, new_onehot_train_labels, newXtest, XtestIDs
 
-load_data(testing=False)
+if __name__ == "__main__":
+    load_data(testing=False)
