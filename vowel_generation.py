@@ -53,7 +53,7 @@ def load_vowel_data(trainingData, trainIds, testingData, testIds, type="npy"):
     Xtrain = allX[trainIndices]
     Ytrain = vowels[trainIndices]
 
-    newXtrain = np.zeros((0, ENCODING + 3))
+    newXtrain = np.zeros((0, ENCODING + 11))
     newYtrain = np.zeros((0, ENCODING))
     for i in range(Xtrain.shape[0]):
         coughs = np.zeros((0, ENCODING))
@@ -74,8 +74,6 @@ def load_vowel_data(trainingData, trainIds, testingData, testIds, type="npy"):
     cough_noise = np.random.default_rng().normal(0, 1e-1, (newXtrain.shape[0], ENCODING))
     age_noise = np.random.default_rng().normal(0, 1, (newXtrain.shape[0], 1))
     packYears_noise = np.random.default_rng().normal(0, 5, (newXtrain.shape[0], 1))
-    newXtrain = newXtrain[:,1:]
-    newXtrain = newXtrain.astype(np.float32)  # Converts to numeric type (float32)
     newXtrain = np.vstack((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING].reshape((newXtrain.shape[0], 1)) + age_noise, newXtrain[:, ENCODING + 1:-1], np.atleast_2d(newXtrain[:, -1]).T + packYears_noise), axis=1)))
     newYtrain = np.tile(newYtrain, (2, 1))
 
@@ -127,7 +125,7 @@ def train (trainX, trainY, W1, b1, W2, b2, epsilon = 1e-2, batchSize = 64, numEp
 
     return W1, b1, W2, b2
 
-def vowelNN(trainX, trainY, epsilon=1e-4, batchSize=32, numEpochs=100, numHidden=20, alpha=0):
+def vowelNN(trainX, trainY, epsilon=1e-4, batchSize=32, numEpochs=100, numHidden=20):
     num_input = trainX.shape[0]
     num_output = trainY.shape[0]
     # Initialize weights to reasonable random values
@@ -136,7 +134,7 @@ def vowelNN(trainX, trainY, epsilon=1e-4, batchSize=32, numEpochs=100, numHidden
     W2 = 2*(np.random.random(size=(num_output, numHidden))/numHidden**0.5) - 1./numHidden**0.5
     b2 = np.mean(trainY)
 
-    W1, b1, W2, b2 = train(trainX, trainY, W1, b1, W2, b2, epsilon=epsilon, batchSize=batchSize, numEpochs=numEpochs, alpha=alpha)
+    W1, b1, W2, b2 = train(trainX, trainY, W1, b1, W2, b2, epsilon=epsilon, batchSize=batchSize, numEpochs=numEpochs)
     loss, _, _, _, _ = forward_prop(trainX, trainY, W1, b1, W2, b2)
     print("Final Training Loss:", loss)
 
@@ -178,7 +176,7 @@ def start(trainingData, trainIds, testingData, testIds):
     if file_type == "npy":
         W1, b1, W2, b2 = vowelNN(Xtrain.T, Ytrain.T, epsilon=0.00001, batchSize=16, numEpochs=200, numHidden=20)
     else:
-        W1, b1, W2, b2 = vowelNN(Xtrain.T, Ytrain.T, epsilon=0.00001, batchSize=32, numEpochs=100, numHidden=30, alpha=0.0001)
+        W1, b1, W2, b2 = vowelNN(Xtrain.T, Ytrain.T, epsilon=0.00001, batchSize=32, numEpochs=100, numHidden=20)
 
     vowels = generate_vowels(actualTest, W1, b1, W2, b2)
     print(vowels.shape)

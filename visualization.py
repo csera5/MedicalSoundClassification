@@ -2,13 +2,62 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder
-from ellys_data_loader_2 import load_data
+# from classification_5 import load_data
 from ordinal_data import load_ordinal_data
 from continuous_data import load_continuous_data
 from continuous_not_audio_data import load_continuous_no_audio_data
 # from spectrograph import load_sound_data
 import seaborn as sns
 import pandas as pd
+from vowel_generation import start
+
+def load_data():
+    trainingData = pd.read_csv("train.csv").to_numpy()
+    testingData = pd.read_csv("test.csv").to_numpy()
+    Xtrain = trainingData[:, :-1]
+    Ytrain = np.atleast_2d(trainingData[:, -1]).T
+    Xtest = testingData
+
+    onehot_train_labels = np.zeros((Ytrain.shape[0], 3)) # 3 classes to predict
+    onehot_train_labels[np.arange(Ytrain.shape[0]), Ytrain[:, 0].astype(int)] = 1 # performs one hot encoding
+
+    onehot_train_coldpresent = np.zeros((Xtrain.shape[0], 3))
+    onehot_train_coldpresent[Xtrain[:, 8] == 0, 0] = 1
+    onehot_train_coldpresent[Xtrain[:, 8] == 1, 1] = 1
+    onehot_train_coldpresent[np.isnan(Xtrain[:, 8].astype(float)), 2] = 1
+
+    onehot_test_coldpresent = np.zeros((Xtest.shape[0], 3))
+    onehot_test_coldpresent[Xtest[:, 8] == 0, 0] = 1
+    onehot_test_coldpresent[Xtest[:, 8] == 1, 1] = 1
+    onehot_test_coldpresent[np.isnan(Xtest[:, 8].astype(float)), 2] = 1
+
+    trainIds = Xtrain[:, 0]
+    testIds = Xtest[:, 0]
+    Xtrain = np.concatenate((Xtrain[:, 1:8].astype(float), onehot_train_coldpresent, np.atleast_2d(Xtrain[:, 9]).T.astype(float)), axis=1)
+    Xtest = np.concatenate((Xtest[:, 1:8].astype(float), onehot_test_coldpresent, np.atleast_2d(Xtest[:, 9]).T.astype(float)), axis=1)
+
+    print(Xtrain.shape)
+    print(Xtest.shape)
+    print(trainIds.shape)
+    print(testIds.shape)
+    print()
+    start(Xtrain, trainIds, Xtest, testIds)
+
+    newXtrain = np.zeros((0, 512 * 2 + 11))
+    new_onehot_train_labels = np.zeros((0, 3))
+    for i in range(Xtrain.shape[0]):
+        try:
+            vowel = np.load(f"sounds/sounds/{trainIds[i]}/vowel-opera.npy")
+        except FileNotFoundError:
+            vowel = np.load(f"newSounds/{trainIds[i]}/vowel-opera.npy")
+        cough = np.load(f"sounds/sounds/{trainIds[i]}/cough-opera.npy")
+        newXtrain = np.append(newXtrain, np.concatenate((cough, np.atleast_2d(vowel), np.atleast_2d(Xtrain[i])), axis=1), axis=0)
+        new_onehot_train_labels = np.append(new_onehot_train_labels, np.atleast_2d(onehot_train_labels[i]), axis=0)
+
+    print(newXtrain.shape)
+    print(new_onehot_train_labels.shape)
+
+    return newXtrain, new_onehot_train_labels
 
 def show_continuous_2D_PCA(X_train, Y_train):
 
@@ -44,7 +93,7 @@ def show_continuous_PCA(X_train, Y_train, title="PCA Projection of Continuous Tr
     X_train_scaled = scaler.fit_transform(X_train)
 
     # Apply PCA
-    pca = PCA(n_components=X_train.shape[1])  # Reduce to N principal components
+    pca = PCA(n_components=min(X_train.shape[0], X_train.shape[1]))  # Reduce to N principal components
     X_train_pca = pca.fit_transform(X_train_scaled)
 
     # Extract first two principal components
@@ -91,16 +140,20 @@ def show_ordinal_PCA(X_train, Y_train):
     ax.set_title("PCA Projection of Ordinal Training Data")
     plt.show()
 
-allTrainX, allTrainY, _, _ = load_data()
+allTrainX, allTrainY = load_data()
+print("allTrainX", allTrainX.shape)
+print("allTrainY", allTrainY.shape)
 
-allTrainX, allTrainY = load_ordinal_data()
-show_ordinal_PCA(allTrainX, allTrainY)
+ordTrainX = allTrainX[:, 2 * 512 + 1:-1]
+print("ordTrainX", ordTrainX.shape)
+show_ordinal_PCA(ordTrainX, allTrainY)
 
-allTrainX, allTrainY, _, _ = load_continuous_data()
-show_continuous_PCA(allTrainX, allTrainY)
+contTrainX = np.concatenate((allTrainX[:, :512 * 2 + 1], np.atleast_2d(allTrainX[:, -1]).T), axis=1)
+print("contTrainX", contTrainX.shape)
+show_continuous_PCA(contTrainX, allTrainY)
 
-allTrainX, allTrainY = load_continuous_no_audio_data()
-show_continuous_2D_PCA(allTrainX, allTrainY)
+contTrainX = np.concatenate((np.atleast_2d(allTrainX[:, 512 * 2]).T, np.atleast_2d(allTrainX[:, -1]).T), axis=1)
+show_continuous_2D_PCA(contTrainX, allTrainY)
 
 # allTrainX, allTrainY, _, _ = load_sound_data()
 allTrainX = pd.read_csv("spectrograph-X.csv").to_numpy().reshape(546, 137)

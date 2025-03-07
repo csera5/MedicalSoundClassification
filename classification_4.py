@@ -47,6 +47,9 @@ def load_data(testing=False):
     Xtrain = np.concatenate((Xtrain[:, 1:8].astype(float), onehot_train_coldpresent, np.atleast_2d(Xtrain[:, 9]).T.astype(float)), axis=1)
     Xtest = np.concatenate((Xtest[:, 1:8].astype(float), onehot_test_coldpresent, np.atleast_2d(Xtest[:, 9]).T.astype(float)), axis=1)
 
+    print(Xtrain.shape)
+    print(Xtest.shape)
+    print()
     start(Xtrain, trainIds, Xtest, testIds)
     print()
 
