@@ -37,7 +37,7 @@ def show_continuous_2D_PCA(X_train, Y_train):
     plt.show()
 
 
-def show_continuous_PCA(X_train, Y_train):
+def show_continuous_PCA(X_train, Y_train, title="PCA Projection of Continuous Training Data"):
 
     # Standardize the Data
     scaler = StandardScaler()
@@ -61,7 +61,7 @@ def show_continuous_PCA(X_train, Y_train):
     ax.set_xlabel("Principal Component 1")
     ax.set_ylabel("Principal Component 2")
     ax.set_zlabel("Principal Component 3")
-    ax.set_title("PCA Projection of Ordinal Training Data")
+    ax.set_title(title)
     plt.show()
 
 def show_ordinal_PCA(X_train, Y_train):
@@ -91,21 +91,20 @@ def show_ordinal_PCA(X_train, Y_train):
     ax.set_title("PCA Projection of Continuous Training Data")
     plt.show()
 
-# allTrainX, allTrainY, _, _ = load_data()
-# allTrainX = np.delete(allTrainX, 519, axis=1) # deleting column 519
+allTrainX, allTrainY, _, _ = load_data()
 
-# allTrainX, allTrainY = load_ordinal_data()
-# show_ordinal_PCA(allTrainX, allTrainY)
+allTrainX, allTrainY = load_ordinal_data()
+show_ordinal_PCA(allTrainX, allTrainY)
 
-# allTrainX, allTrainY = load_continuous_data()
-# show_continuous_PCA(allTrainX, allTrainY)
+allTrainX, allTrainY = load_continuous_data()
+show_continuous_PCA(allTrainX, allTrainY)
 
-# allTrainX, allTrainY = load_continuous_no_audio_data()
-# show_continuous_2D_PCA(allTrainX, allTrainY)
+allTrainX, allTrainY = load_continuous_no_audio_data()
+show_continuous_2D_PCA(allTrainX, allTrainY)
 
 # allTrainX, allTrainY, _, _ = load_sound_data()
-allTrainX = pd.read_csv("test.csv").to_numpy().reshape(546, 137)
-allTrainY = pd.read_csv("test.csv").to_numpy().reshape(546, 3)
+allTrainX = pd.read_csv("spectrograph-X.csv").to_numpy().reshape(546, 137)
+allTrainY = pd.read_csv("spectrograph-Y.csv").to_numpy().reshape(546, 3)
 print(allTrainX.shape, allTrainY.shape)
 
 # df = pd.DataFrame({
@@ -123,4 +122,4 @@ print(allTrainX.shape, allTrainY.shape)
 allTrainX = np.nan_to_num(allTrainX)
 allTrainY = np.nan_to_num(allTrainY)
 
-show_continuous_PCA(allTrainX, allTrainY)
+show_continuous_PCA(allTrainX, allTrainY, title="PCA Projection of Spectrograph Training Data")
