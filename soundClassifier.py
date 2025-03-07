@@ -7,7 +7,12 @@ from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
 from spectrograph import load_sound_data
 
-X_train, Y_train, X_test, testingIDs = load_sound_data()
+TESTING = True
+
+if TESTING:
+    X_train, Y_train, X_test, Y_test = load_sound_data(testing=TESTING)
+else:
+    X_train, Y_train, X_test, testingIDs = load_sound_data(testing=TESTING)
 
 scaler = StandardScaler()
 X_train = torch.tensor(scaler.fit_transform(X_train), dtype=torch.float32)
@@ -71,6 +76,15 @@ with torch.no_grad():
     X_test = X_test.to(device)
     test_preds = model(X_test).argmax(1).cpu().numpy()
 
-df = pd.DataFrame({'candidateID': testingIDs, 'disease': test_preds})
-df.to_csv('submission3.csv', index=False)
-print("Predictions saved to submission3.csv")
+if TESTING:
+    accuracy = np.sum(Y_test.argmax(axis=1) == np.array(test_preds)) / len(Y_test)
+    print(f"Testing: {accuracy}")
+
+    yhat_baseline = np.zeros_like(Y_test)
+    yhat_baseline[:, Y_test.sum(axis=0).argmax(axis=0)] = 1
+    accuracy = np.sum(np.all(Y_test == yhat_baseline, axis=1)) / len(Y_test)
+    print(f"Baseline: {accuracy}")
+else:
+    df = pd.DataFrame({'candidateID': testingIDs, 'disease': test_preds})
+    df.to_csv('submission3.csv', index=False)
+    print("Predictions saved to submission3.csv")

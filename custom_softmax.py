@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from classification_5 import load_data
 
+TESTING = False
 
 def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLabels, epsilon, batchSize, alpha):    
     w = 0.0001 * np.random.randn(trainingImages.shape[1], trainingLabels.shape[1]) # initialzie w to random numbers
@@ -41,9 +42,7 @@ def visualize_weights(w, title):
 
    
 if __name__ == "__main__":
-    testing = True
-
-    Xtrain, Ytrain, Xtest, Ytest = load_data(testing=testing)
+    Xtrain, Ytrain, Xtest, Ytest = load_data(testing=TESTING)
     print(f"Xtrain: {Xtrain.shape}")
     print(f"Xtest: {Xtest.shape}")
 
@@ -78,7 +77,7 @@ if __name__ == "__main__":
     accuracy = np.sum(np.all(Ytrain == yhat_train_onehot, axis = 1)) / len(Ytrain)
     print(f"Training: {accuracy}")
 
-    if testing:
+    if TESTING:
         accuracy = np.sum(np.all(Ytest == yhat_onehot, axis = 1)) / len(Ytest)
         print(f"Testing: {accuracy}")
         

@@ -2,8 +2,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
 import torch
-from classification import load_data
+from classification_5 import load_data
 import pandas as pd
+import numpy as np
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -14,13 +15,17 @@ batch_size = 24
 weight_decay = 0 
 
 # Architecture
-num_features = 523
+num_features = 1035
 num_classes = 3
 
-TESTING = False
+TESTING = True
 
 EPOCHS = 80
-X_train, y_train, X_test, testingIDs  = load_data(testing=TESTING) # loads data
+
+if TESTING:
+    X_train, y_train, X_test, Y_test  = load_data(testing=TESTING) # loads data  
+else:  
+    X_train, y_train, X_test, testingIDs  = load_data(testing=TESTING) # loads data
 
 X_train = torch.tensor(X_train, dtype=torch.float32)
 y_train = torch.tensor(y_train, dtype=torch.long)
@@ -125,7 +130,13 @@ with torch.no_grad():
         predictions.extend(predicted.cpu().numpy())
 
 if TESTING:
-    print(predictions.shape)
+    accuracy = np.sum(Y_test.argmax(axis=1) == np.array(predictions)) / len(Y_test)
+    print(f"Testing: {accuracy}")
+
+    yhat_baseline = np.zeros_like(Y_test)
+    yhat_baseline[:, Y_test.sum(axis=0).argmax(axis=0)] = 1
+    accuracy = np.sum(np.all(Y_test == yhat_baseline, axis=1)) / len(Y_test)
+    print(f"Baseline: {accuracy}")
 else:
     df = pd.DataFrame({'candidateID': testingIDs, 'disease': predictions})
     df.to_csv('submission.csv', index=False)

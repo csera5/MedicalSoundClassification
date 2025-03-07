@@ -25,7 +25,7 @@ batch_size = 64
 num_features = 1035
 num_classes = 3
 
-TESTING = True
+TESTING = False
 EPOCHS = 100
 K = 5  # Number of folds for cross-validation
 

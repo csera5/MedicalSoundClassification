@@ -30,20 +30,34 @@ def extract_mel_spectrogram(wav_path, n_mels=N_MELS, hop_length=HOP_LENGTH, visu
         return None
 
 
-def load_sound_data(visualize_samples=3):
-    trainingData = pd.read_csv("train.csv")
-    testingData = pd.read_csv("test.csv")
+def load_sound_data(testing=False, visualize_samples=3):
+    if testing:
+        trainingData = pd.read_csv("newTrain.csv").to_numpy()
+        testingData = pd.read_csv("newTest.csv").to_numpy()
 
-    Xtrain = trainingData.to_numpy()[:, :-1]  
-    Xtest = testingData.to_numpy()
+        Xtrain = trainingData[:, :-1]
+        Ytrain = np.atleast_2d(trainingData[:, -1]).T
+        Xtest = testingData[:, :-1]
+        Ytest = np.atleast_2d(testingData[:, -1]).T
+
+        onehot_train_labels = np.zeros((Ytrain.shape[0], NUM_CLASSES)) # 3 classes to predict
+        onehot_train_labels[np.arange(Ytrain.shape[0]), Ytrain[:, 0].astype(int)] = 1 # performs one hot encoding
+        onehot_test_labels = np.zeros((Ytest.shape[0], NUM_CLASSES)) # 3 classes to predict
+        onehot_test_labels[np.arange(Ytest.shape[0]), Ytest[:, 0].astype(int)] = 1 # performs one hot encoding
+    else:
+        trainingData = pd.read_csv("train.csv").to_numpy()
+        testingData = pd.read_csv("test.csv").to_numpy()
+        Xtrain = trainingData[:, :-1]
+        Ytrain = np.atleast_2d(trainingData[:, -1]).T
+        Xtest = testingData
+
+        onehot_train_labels = np.zeros((Ytrain.shape[0], NUM_CLASSES)) # 3 classes to predict
+        onehot_train_labels[np.arange(Ytrain.shape[0]), Ytrain[:, 0].astype(int)] = 1 # performs one hot encoding
+
     XtestIDs = Xtest[:, 0]
-    Ytrain = np.atleast_2d(trainingData.to_numpy()[:, -1]).T  
-    Ytrain = Ytrain.reshape(Ytrain.shape[0], 1)
 
     num_train = Xtrain.shape[0]
     num_test = Xtest.shape[0]
-    onehot_train_labels = np.zeros((num_train, NUM_CLASSES))
-    onehot_train_labels[np.arange(num_train), Ytrain[:, 0].astype(int)] = 1  #one hot
 
     candidateIds = Xtrain[:, 0]
     Xtrain = Xtrain[:, 1:].astype(float)
@@ -51,7 +65,7 @@ def load_sound_data(visualize_samples=3):
 
     newXtrain = []
     new_onehot_train_labels = []
-    sample_count = 0  
+    sample_count = 0
 
     print("Processing training data...")
     #get all sounds for each training sample
@@ -67,7 +81,7 @@ def load_sound_data(visualize_samples=3):
 
     newXtest = []
     print("Processing testing data...")
-    sample_count = 0  
+    sample_count = 0
     for i in range(num_test):
         candidate_id = XtestIDs[i]
         wav_path = f"sounds/sounds/{candidate_id}/cough.wav"
@@ -85,7 +99,12 @@ def load_sound_data(visualize_samples=3):
     print(f"Train Data Shape: {newXtrain.shape}")
     print(f"Train Labels Shape: {new_onehot_train_labels.shape}")
     print(f"Test Data Shape: {newXtest.shape}")
+    print("Test", Xtest.shape)
 
-    return newXtrain, new_onehot_train_labels, newXtest, XtestIDs
+    if testing:
+        return newXtrain, new_onehot_train_labels, newXtest, Ytest
+    else:
+        return newXtrain, new_onehot_train_labels, newXtest, XtestIDs
 
-load_sound_data()
+if __name__ == "__main__":
+    load_sound_data(testing=False)
