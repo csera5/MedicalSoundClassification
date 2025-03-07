@@ -1,5 +1,3 @@
-# Added more cough data
-
 import numpy as np
 import pandas
 import json
@@ -8,7 +6,7 @@ from vowel_generation import start
 ENCODING = 512
 NUM_CLASSES = 3
 
-def load_data(testing=False):
+def load_continuous_data(testing=False):
     if testing:
         trainingData = pandas.read_csv("newTrain.csv").to_numpy()
         testingData = pandas.read_csv("newTest.csv").to_numpy()
@@ -44,8 +42,10 @@ def load_data(testing=False):
 
     trainIds = Xtrain[:, 0]
     testIds = Xtest[:, 0]
-    Xtrain = np.concatenate((Xtrain[:, 1:8].astype(float), onehot_train_coldpresent, np.atleast_2d(Xtrain[:, 9]).T.astype(float)), axis=1)
-    Xtest = np.concatenate((Xtest[:, 1:8].astype(float), onehot_test_coldpresent, np.atleast_2d(Xtest[:, 9]).T.astype(float)), axis=1)
+    
+    # Remove columns 1-8 (ordinal data), keeping other columns
+    Xtrain = np.concatenate((Xtrain[:, 9:], onehot_train_coldpresent, np.atleast_2d(Xtrain[:, 9]).T.astype(float)), axis=1)
+    Xtest = np.concatenate((Xtest[:, 9:], onehot_test_coldpresent, np.atleast_2d(Xtest[:, 9]).T.astype(float)), axis=1)
 
     start(Xtrain, trainIds, Xtest, testIds)
     print()
@@ -67,9 +67,10 @@ def load_data(testing=False):
             pass
         cough = np.load(f"sounds/sounds/{trainIds[i]}/cough-opera.npy")
         coughs = np.append(coughs, cough, axis=0)
-
-        # cough = np.load(f"sounds/sounds/{Xtrain[i, 0]}/cough-opera.npy")
-        newXtrain = np.append(newXtrain, np.concatenate((coughs, np.tile(vowel, (coughs.shape[0], 1)), np.tile(Xtrain[i], (coughs.shape[0], 1))), axis=1), axis=0)
+        Xtrain_i = np.tile(Xtrain[i], (coughs.shape[0], 1))
+        Xtrain_i = Xtrain_i[:, :coughs.shape[1]]
+                            
+        newXtrain = np.concatenate((newXtrain, np.concatenate((coughs, Xtrain_i), axis=1)), axis=0)
         new_onehot_train_labels = np.append(new_onehot_train_labels, np.tile(onehot_train_labels[i], (coughs.shape[0], 1)), axis=0)
 
     newXtest = np.zeros((0, ENCODING * 2 + 11))
@@ -90,11 +91,12 @@ def load_data(testing=False):
     vowel_noise = np.random.default_rng().normal(0, 1e-2, (newXtrain.shape[0], ENCODING))
     age_noise = np.random.default_rng().normal(0, 1, (newXtrain.shape[0], 1))
     packYears_noise = np.random.default_rng().normal(0, 5, (newXtrain.shape[0], 1))
-    # print("coughs", (newXtrain[:, :ENCODING] + cough_noise).shape)
-    # print("age", (np.atleast_2d(newXtrain[:, ENCODING]).T + age_noise).shape)
-    # print("block", newXtrain[:, ENCODING + 1:-1].shape)
-    # print("packYears", (np.atleast_2d(newXtrain[:, -1]).T + packYears_noise).shape)
-    newXtrain = np.concatenate((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, newXtrain[:, ENCODING:ENCODING * 2] + vowel_noise, np.atleast_2d(newXtrain[:, ENCODING * 2]).T + age_noise, newXtrain[:, ENCODING * 2 + 1:-1], np.atleast_2d(newXtrain[:, -1]).T + packYears_noise), axis=1)), axis=0)
+
+    newXtrain = np.concatenate((newXtrain, np.concatenate((newXtrain[:, :ENCODING] + cough_noise, 
+                                                           newXtrain[:, ENCODING:ENCODING * 2] + vowel_noise, 
+                                                           np.atleast_2d(newXtrain[:, ENCODING * 2]).T + age_noise, 
+                                                           newXtrain[:, ENCODING * 2 + 1:-1], 
+                                                           np.atleast_2d(newXtrain[:, -1]).T + packYears_noise), axis=1)), axis=0)
     new_onehot_train_labels = np.tile(new_onehot_train_labels, (2, 1))
 
     print(newXtrain.shape)
@@ -110,5 +112,5 @@ def load_data(testing=False):
     else:
         return newXtrain, new_onehot_train_labels, newXtest, testIds
     
-if __name__ == "__main__":
-    load_data(testing=False)
+# if __name__ == "__main__":
+#     load_continuous_data(testing=False)
